@@ -1,34 +1,8 @@
-import Link from "next/link"
-import { Button } from "@litedag/ui/components/button"
 import { Timeline, type TimelineItem } from "@litedag/ui/components/timeline"
 import { FeatureCards } from "@/components/feature-cards"
-
-const features = [
-  {
-    title: "15s blocks",
-    description: "Fast finality with MiniDAG consensus.",
-  },
-  {
-    title: "Merge-mined",
-    description: "Shared hashrate, lower cost security.",
-  },
-  {
-    title: "ASIC-resistant",
-    description: "RandomLiteDAG keeps CPUs competitive.",
-  },
-  {
-    title: "No premine",
-    description: "10% dev fee on block rewards only.",
-  },
-  {
-    title: "Scalable",
-    description: "MiniDAG prunes chain bloat.",
-  },
-  {
-    title: "Original",
-    description: "Written from scratch in Go.",
-  },
-]
+import { HeroDotMatrix } from "@/components/hero-dot-matrix"
+import { HeroGlobe } from "@/components/hero-globe"
+import { HeroSubtitle } from "@/components/hero-subtitle"
 
 const roadmap: TimelineItem[] = [
   { title: "Begin of the project", status: "done", date: "Nov 2023" },
@@ -52,29 +26,23 @@ const roadmap: TimelineItem[] = [
 export default function Page() {
   return (
     <main className="min-h-svh">
-      <section className="relative overflow-hidden">
-        <div className="mx-auto grid max-w-7xl items-start gap-12 px-4 py-24 lg:grid-cols-[1fr_auto] lg:gap-16 lg:py-32">
-          <div className="flex flex-col gap-5">
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-              LiteDAG
+      <section className="relative flex h-[calc(100svh-3.5rem)] items-center overflow-hidden">
+        <HeroDotMatrix />
+        <div className="relative z-10 mx-auto flex w-full max-w-7xl items-center px-4">
+          <div className="flex max-w-lg flex-col gap-5">
+            <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
+              The lightest DAG.
             </h1>
-            <p className="max-w-sm text-[15px] leading-relaxed text-muted-foreground">
-              The first MiniDAG — a DAG simulated on a linear chain.
-              Multi-chain PoW via merge-mining.
+            <p className="max-w-md text-[15px] leading-relaxed text-muted-foreground">
+              DAG benefits on a linear chain. Hybrid PoW/PoS with merge-mining.
             </p>
-            <div className="flex gap-3">
-              <Button asChild size="sm">
-                <Link href="/docs/info/links#wallets">Get started</Link>
-              </Button>
-              <Button variant="outline" asChild size="sm">
-                <Link href="/docs">Read the docs</Link>
-              </Button>
-            </div>
+            <HeroSubtitle />
           </div>
-
-          <FeatureCards features={features} />
         </div>
+        <HeroGlobe />
       </section>
+
+      <FeatureCards />
 
       <section className="mx-auto max-w-7xl px-4 py-16">
         <h2 className="mb-8 text-lg font-semibold">Roadmap</h2>

@@ -1,86 +1,97 @@
 "use client"
 
-import { useState } from "react"
-import { AnimatePresence, motion } from "motion/react"
-import { DotMatrix } from "@litedag/ui/components/dot-matrix"
+import { useRef } from "react"
+import { EncryptedText } from "@litedag/ui/components/encrypted-text"
+import { ZapIcon, type ZapHandle } from "@litedag/ui/components/zap"
+import { GitMergeIcon, type GitMergeIconHandle } from "@litedag/ui/components/git-merge"
+import { CpuIcon, type CpuIconHandle } from "@litedag/ui/components/cpu"
+import { HandCoinsIcon, type HandCoinsIconHandle } from "@litedag/ui/components/hand-coins"
+import { LayersIcon, type LayersIconHandle } from "@litedag/ui/components/layers"
+import { FingerprintIcon, type FingerprintIconHandle } from "@litedag/ui/components/fingerprint"
 
-const GRID = 40
-const CARD_W = GRID * 6   // 240px
-const CARD_H = GRID * 3   // 120px
-const COLS = 3
-const ROWS = 2
-const EXTEND_X = GRID * 20
-const EXTEND_Y = GRID * 10
+type IconHandle = ZapHandle | GitMergeIconHandle | CpuIconHandle | HandCoinsIconHandle | LayersIconHandle | FingerprintIconHandle
 
-export function FeatureCards({
-  features,
-}: {
-  features: { title: string; description: string }[]
+const FEATURES = [
+  {
+    fig: "FIG 0.1",
+    title: "15s blocks",
+    description: "Fast finality with MiniDAG consensus. Uncle blocks are acknowledged and rewarded, not discarded.",
+    Icon: ZapIcon,
+  },
+  {
+    fig: "FIG 0.2",
+    title: "Merge-mined",
+    description: "Shared hashrate with partner chains. Lower cost security without splitting mining power.",
+    Icon: GitMergeIcon,
+  },
+  {
+    fig: "FIG 0.3",
+    title: "ASIC-resistant",
+    description: "RandomLiteDAG memory-hard PoW keeps consumer CPUs competitive against specialized hardware.",
+    Icon: CpuIcon,
+  },
+  {
+    fig: "FIG 0.4",
+    title: "No premine",
+    description: "10% governance fee on block rewards only. No ICO, no VC allocation, no insider tokens.",
+    Icon: HandCoinsIcon,
+  },
+  {
+    fig: "FIG 0.5",
+    title: "Scalable",
+    description: "MiniDAG acknowledges parallel work without the complexity of a full DAG data structure.",
+    Icon: LayersIcon,
+  },
+  {
+    fig: "FIG 0.6",
+    title: "Original",
+    description: "Written from scratch in Go. ~17k lines of audited code, no forked runtime dependencies.",
+    Icon: FingerprintIcon,
+  },
+] as const
+
+function FeatureCard({ fig, title, description, Icon }: {
+  fig: string
+  title: string
+  description: string
+  Icon: React.ForwardRefExoticComponent<React.RefAttributes<IconHandle> & { size?: number; className?: string }>
 }) {
+  const ref = useRef<IconHandle>(null)
+
   return (
-    <div className="relative">
-      <div
-        className="pointer-events-none absolute opacity-[0.12] dark:opacity-[0.18]"
-        style={{
-          inset: `-${EXTEND_Y}px -${EXTEND_X}px`,
-          backgroundSize: `${GRID}px ${GRID}px`,
-          backgroundImage: `linear-gradient(to right, var(--color-muted-foreground) 1px, transparent 1px), linear-gradient(to bottom, var(--color-muted-foreground) 1px, transparent 1px)`,
-        }}
-      />
-      <div
-        className="relative grid"
-        style={{
-          gridTemplateColumns: `repeat(${COLS}, ${CARD_W}px)`,
-          gridTemplateRows: `repeat(${ROWS}, ${CARD_H}px)`,
-        }}
-      >
-        {features.map((f) => (
-          <FeatureCard key={f.title} title={f.title} description={f.description} />
-        ))}
+    <div
+      onMouseEnter={() => ref.current?.startAnimation()}
+      onMouseLeave={() => ref.current?.stopAnimation()}
+      className="group flex flex-col border border-border/50 bg-background transition-colors hover:bg-muted/30"
+    >
+      <div className="relative flex h-48 items-center justify-center bg-muted/20 transition-colors group-hover:bg-muted/40">
+        <span className="absolute left-4 top-4 font-mono text-[11px] tracking-wider text-muted-foreground/40">
+          {fig}
+        </span>
+        <Icon
+          ref={ref}
+          size={80}
+          className="text-muted-foreground transition-colors group-hover:text-foreground"
+        />
+      </div>
+      <div className="flex flex-col gap-1.5 p-5">
+        <h3 className="text-sm font-semibold">
+          <EncryptedText text={title} revealDelayMs={40} flipDelayMs={30} encryptedClassName="opacity-30" />
+        </h3>
+        <p className="text-[13px] leading-relaxed text-muted-foreground/80">{description}</p>
       </div>
     </div>
   )
 }
 
-function FeatureCard({
-  title,
-  description,
-}: {
-  title: string
-  description: string
-}) {
-  const [hovered, setHovered] = useState(false)
-
+export function FeatureCards() {
   return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className="relative flex items-center justify-center overflow-hidden"
-    >
-      <AnimatePresence>
-        {hovered && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="absolute inset-0"
-          >
-            <DotMatrix
-              colors={[[94, 106, 210]]}
-              containerClassName="bg-transparent"
-              dotSize={2}
-              showGradient={false}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-      <span className={`relative z-10 text-sm font-medium transition-all duration-200 ${hovered ? "scale-95 opacity-0" : ""}`}>
-        {title}
-      </span>
-      <span className={`absolute inset-0 z-10 flex items-center justify-center px-3 text-center text-xs leading-snug text-foreground/80 transition-all duration-200 ${hovered ? "opacity-100" : "opacity-0 scale-105"}`}>
-        {description}
-      </span>
-    </div>
+    <section className="mx-auto max-w-7xl px-4 pb-16">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {FEATURES.map((f) => (
+          <FeatureCard key={f.title} {...f} />
+        ))}
+      </div>
+    </section>
   )
 }
