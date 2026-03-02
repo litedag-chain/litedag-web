@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { cn } from "@litedag/ui/lib/utils"
-import { ThemeToggle } from "@litedag/ui/components/theme-toggle"
 
 export type SiteId = "website" | "explorer" | "wallet"
 
@@ -33,7 +32,7 @@ export function SiteNav({ currentSite }: { currentSite: SiteId }) {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+      <div className="mx-auto flex h-14 max-w-6xl items-center px-4">
         {/* Logo */}
         <a
           href={getSiteUrl(SITES[0]!, currentSite)}
@@ -43,8 +42,8 @@ export function SiteNav({ currentSite }: { currentSite: SiteId }) {
           <span>LiteDAG</span>
         </a>
 
-        {/* Desktop links */}
-        <nav className="hidden items-center gap-1 md:flex">
+        {/* Desktop links — right-aligned */}
+        <nav className="ml-auto hidden items-center gap-1 md:flex">
           {SITES.map((site) => {
             const active = site.id === currentSite
             return (
@@ -77,30 +76,25 @@ export function SiteNav({ currentSite }: { currentSite: SiteId }) {
           </a>
         </nav>
 
-        {/* Right side */}
-        <div className="flex items-center gap-1">
-          <ThemeToggle />
-
-          {/* Mobile hamburger */}
-          <button
-            className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground md:hidden"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle menu"
-          >
-            {menuOpen ? (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 6 6 18" />
-                <path d="m6 6 12 12" />
-              </svg>
-            ) : (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="4" x2="20" y1="12" y2="12" />
-                <line x1="4" x2="20" y1="6" y2="6" />
-                <line x1="4" x2="20" y1="18" y2="18" />
-              </svg>
-            )}
-          </button>
-        </div>
+        {/* Mobile hamburger */}
+        <button
+          className="ml-auto inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground md:hidden"
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle menu"
+        >
+          {menuOpen ? (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="4" x2="20" y1="12" y2="12" />
+              <line x1="4" x2="20" y1="6" y2="6" />
+              <line x1="4" x2="20" y1="18" y2="18" />
+            </svg>
+          )}
+        </button>
       </div>
 
       {/* Mobile menu */}
