@@ -184,6 +184,11 @@ export function Dashboard({ wallet, walletName, onLock }: {
               label = "Register Delegate"
               displayAmount = tx.total_amount
               amountAtomic = -(tx.total_amount + (tx.fee || 0))
+            } else if (tx.sender === wallet.address && outputs.length > 0 && outputs.every((o) => o.recipient === wallet.address)) {
+              type = "self"
+              label = "Self Transfer"
+              displayAmount = 0
+              amountAtomic = -(tx.fee || 0)
             } else if (tx.sender === wallet.address) {
               type = "sent"
               label = "Sent"

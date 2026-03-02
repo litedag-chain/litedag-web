@@ -9,9 +9,9 @@ import {
 import { CopyText } from "@litedag/ui/components/copy-text"
 import { formatCoin, explorerUrl } from "@/lib/rpc-client"
 import { timeAgo } from "@litedag/shared/format"
-import { ArrowUpRight, ArrowDownLeft, Pickaxe, Layers, ExternalLink } from "lucide-react"
+import { ArrowUpRight, ArrowDownLeft, Pickaxe, Layers, RefreshCw, ExternalLink } from "lucide-react"
 
-type TxType = "reward" | "sent" | "received" | "staking"
+type TxType = "reward" | "sent" | "received" | "staking" | "self"
 
 export type TxEntry = {
   txid: string
@@ -29,6 +29,7 @@ const TX_TYPE_CONFIG: Record<TxType, { icon: typeof ArrowUpRight; colorClass: st
   received: { icon: ArrowDownLeft, colorClass: "text-green-500", bgClass: "bg-green-500/10", amountClass: "text-green-500" },
   sent:     { icon: ArrowUpRight,  colorClass: "text-red-500",   bgClass: "bg-red-500/10",   amountClass: "text-red-500" },
   staking:  { icon: Layers,        colorClass: "text-primary",   bgClass: "bg-primary/10",   amountClass: "text-primary" },
+  self:     { icon: RefreshCw,     colorClass: "text-muted-foreground", bgClass: "bg-muted",  amountClass: "text-muted-foreground" },
 }
 
 export function TransactionHistory({ txs, loading }: { txs: TxEntry[]; loading: boolean }) {
@@ -47,7 +48,7 @@ export function TransactionHistory({ txs, loading }: { txs: TxEntry[]; loading: 
             {txs.map((tx) => {
               const cfg = TX_TYPE_CONFIG[tx.type]
               const Icon = cfg.icon
-              const prefix = tx.type === "staking" ? "" : tx.amount >= 0 ? "+" : "-"
+              const prefix = tx.type === "staking" || tx.type === "self" ? "" : tx.amount >= 0 ? "+" : "-"
 
               return (
                 <div key={tx.txid} className="flex items-start gap-3 border-b border-border/30 pb-3 last:border-0 last:pb-0">
