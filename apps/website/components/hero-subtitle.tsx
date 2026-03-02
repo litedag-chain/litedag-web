@@ -7,6 +7,7 @@ export function HeroSubtitle() {
     <EncryptedText
       text="The LiteDAG Protocol."
       className="text-primary"
+      startDelayMs={800}
       revealDelayMs={40}
       flipDelayMs={30}
       encryptedClassName="opacity-30"

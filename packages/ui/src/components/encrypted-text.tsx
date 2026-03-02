@@ -7,6 +7,7 @@ import { cn } from "@litedag/ui/lib/utils"
 type EncryptedTextProps = {
   text: string
   className?: string
+  startDelayMs?: number
   revealDelayMs?: number
   charset?: string
   flipDelayMs?: number
@@ -38,6 +39,7 @@ function generateGibberishPreservingSpaces(
 export const EncryptedText: React.FC<EncryptedTextProps> = ({
   text,
   className,
+  startDelayMs = 0,
   revealDelayMs = 50,
   charset = DEFAULT_CHARSET,
   flipDelayMs = 50,
@@ -62,55 +64,66 @@ export const EncryptedText: React.FC<EncryptedTextProps> = ({
       ? generateGibberishPreservingSpaces(text, charset)
       : ""
     scrambleCharsRef.current = initial.split("")
-    startTimeRef.current = performance.now()
-    lastFlipTimeRef.current = startTimeRef.current
     setRevealCount(0)
 
     let isCancelled = false
+    let delayTimer: ReturnType<typeof setTimeout> | null = null
 
-    const update = (now: number) => {
-      if (isCancelled) return
+    const startAnimation = () => {
+      startTimeRef.current = performance.now()
+      lastFlipTimeRef.current = startTimeRef.current
 
-      const elapsedMs = now - startTimeRef.current
-      const totalLength = text.length
-      const currentRevealCount = Math.min(
-        totalLength,
-        Math.floor(elapsedMs / Math.max(1, revealDelayMs)),
-      )
+      const update = (now: number) => {
+        if (isCancelled) return
 
-      setRevealCount((prev) => prev === currentRevealCount ? prev : currentRevealCount)
+        const elapsedMs = now - startTimeRef.current
+        const totalLength = text.length
+        const currentRevealCount = Math.min(
+          totalLength,
+          Math.floor(elapsedMs / Math.max(1, revealDelayMs)),
+        )
 
-      if (currentRevealCount >= totalLength) {
-        return
-      }
+        setRevealCount((prev) => prev === currentRevealCount ? prev : currentRevealCount)
 
-      const timeSinceLastFlip = now - lastFlipTimeRef.current
-      if (timeSinceLastFlip >= Math.max(0, flipDelayMs)) {
-        for (let index = 0; index < totalLength; index += 1) {
-          if (index >= currentRevealCount) {
-            if (text[index] !== " ") {
-              scrambleCharsRef.current[index] =
-                generateRandomCharacter(charset)
-            } else {
-              scrambleCharsRef.current[index] = " "
+        if (currentRevealCount >= totalLength) {
+          return
+        }
+
+        const timeSinceLastFlip = now - lastFlipTimeRef.current
+        if (timeSinceLastFlip >= Math.max(0, flipDelayMs)) {
+          for (let index = 0; index < totalLength; index += 1) {
+            if (index >= currentRevealCount) {
+              if (text[index] !== " ") {
+                scrambleCharsRef.current[index] =
+                  generateRandomCharacter(charset)
+              } else {
+                scrambleCharsRef.current[index] = " "
+              }
             }
           }
+          lastFlipTimeRef.current = now
         }
-        lastFlipTimeRef.current = now
+
+        animationFrameRef.current = requestAnimationFrame(update)
       }
 
       animationFrameRef.current = requestAnimationFrame(update)
     }
 
-    animationFrameRef.current = requestAnimationFrame(update)
+    if (startDelayMs > 0) {
+      delayTimer = setTimeout(startAnimation, startDelayMs)
+    } else {
+      startAnimation()
+    }
 
     return () => {
       isCancelled = true
+      if (delayTimer !== null) clearTimeout(delayTimer)
       if (animationFrameRef.current !== null) {
         cancelAnimationFrame(animationFrameRef.current)
       }
     }
-  }, [isInView, text, revealDelayMs, charset, flipDelayMs])
+  }, [isInView, text, startDelayMs, revealDelayMs, charset, flipDelayMs])
 
   if (!text) return null
 

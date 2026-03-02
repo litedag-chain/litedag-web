@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Color, Scene, Fog, PerspectiveCamera, Vector3 } from "three";
 import ThreeGlobe from "three-globe";
 import { useThree, Canvas, extend } from "@react-three/fiber";
@@ -18,6 +18,14 @@ extend({ ThreeGlobe: ThreeGlobe });
 const RING_PROPAGATION_SPEED = 3;
 const aspect = 1.2;
 const cameraZ = 300;
+
+const scene = (() => {
+  const s = new Scene();
+  s.fog = new Fog(0xffffff, 400, 2000);
+  return s;
+})();
+
+const camera = new PerspectiveCamera(50, aspect, 180, 1800);
 
 type Position = {
   order: number;
@@ -92,7 +100,7 @@ function GlobeInner({ globeConfig, data, countries }: WorldProps) {
   const groupRef = useRef<any>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  const defaultProps = {
+  const defaultProps = useMemo(() => ({
     pointSize: 1,
     atmosphereColor: "#ffffff",
     showAtmosphere: true,
@@ -107,7 +115,7 @@ function GlobeInner({ globeConfig, data, countries }: WorldProps) {
     rings: 1,
     maxRings: 3,
     ...globeConfig,
-  };
+  }), [globeConfig]);
 
   useEffect(() => {
     if (!globeRef.current && groupRef.current) {
@@ -266,10 +274,8 @@ function WebGLRendererConfig() {
 
 export function World(props: WorldProps) {
   const { globeConfig } = props;
-  const scene = new Scene();
-  scene.fog = new Fog(0xffffff, 400, 2000);
   return (
-    <Canvas scene={scene} camera={new PerspectiveCamera(50, aspect, 180, 1800)}>
+    <Canvas scene={scene} camera={camera}>
       <WebGLRendererConfig />
       <ambientLight color={globeConfig.ambientLight} intensity={0.6} />
       <directionalLight
