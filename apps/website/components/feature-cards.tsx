@@ -62,7 +62,7 @@ function FeatureCard({ fig, title, description, Icon }: {
     <div
       onMouseEnter={() => ref.current?.startAnimation()}
       onMouseLeave={() => ref.current?.stopAnimation()}
-      className="group flex flex-col border border-border/50 bg-background transition-colors hover:bg-muted/30"
+      className="group flex flex-col border border-border/50 bg-card transition-colors hover:bg-muted/50"
     >
       <div className="relative flex h-48 items-center justify-center bg-muted/20 transition-colors group-hover:bg-muted/40">
         <span className="absolute left-4 top-4 font-mono text-[11px] tracking-wider text-muted-foreground/40">
@@ -86,7 +86,7 @@ function FeatureCard({ fig, title, description, Icon }: {
 
 export function FeatureCards() {
   return (
-    <section className="mx-auto max-w-7xl px-4 pb-16">
+    <section className="mx-auto max-w-7xl px-4 py-16">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {FEATURES.map((f) => (
           <FeatureCard key={f.title} {...f} />
