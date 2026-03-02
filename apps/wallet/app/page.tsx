@@ -509,6 +509,8 @@ function SendForm({ wallet, onSent }: { wallet: Wallet; onSent: () => void }) {
 
 // --- Staking Actions ---
 
+type DelegateEntry = { id: number; name: string; total_amount: number }
+
 function StakingActions({ wallet, onAction }: { wallet: Wallet; onAction: () => void }) {
   const [delegateInput, setDelegateInput] = useState("")
   const [stakeAmount, setStakeAmount] = useState("")
@@ -517,28 +519,48 @@ function StakingActions({ wallet, onAction }: { wallet: Wallet; onAction: () => 
   const [result, setResult] = useState("")
   const [error, setError] = useState("")
   const [info, setInfo] = useState<{ delegateId: number; unlockHeight: number; currentHeight: number } | null>(null)
+  const [delegates, setDelegates] = useState<DelegateEntry[]>([])
 
+  const fetchInfo = useCallback(async () => {
+    try {
+      const a = await rpc<GetAddressResponse>("get_address", { address: wallet.address })
+      const delegateId = a.delegate_id || 0
+      let unlockHeight = 0
+      if (delegateId > 0) {
+        try {
+          const d = await rpc<GetDelegateResponse>("get_delegate", { delegate_id: delegateId })
+          const f = d.funds?.find((f) => f.owner === wallet.address)
+          if (f) unlockHeight = f.unlock || 0
+        } catch { /* */ }
+      }
+      setInfo({ delegateId, unlockHeight, currentHeight: a.height || 0 })
+    } catch { /* */ }
+  }, [wallet.address])
+
+  useEffect(() => { fetchInfo() }, [fetchInfo])
+
+  // Discover delegates (same approach as explorer: probe IDs 1..50)
   useEffect(() => {
     (async () => {
-      try {
-        const a = await rpc<GetAddressResponse>("get_address", { address: wallet.address })
-        const delegateId = a.delegate_id || 0
-        let unlockHeight = 0
-        if (delegateId > 0) {
-          try {
-            const d = await rpc<GetDelegateResponse>("get_delegate", { delegate_id: delegateId })
-            const f = d.funds?.find((f) => f.owner === wallet.address)
-            if (f) unlockHeight = f.unlock || 0
-          } catch { /* */ }
-        }
-        setInfo({ delegateId, unlockHeight, currentHeight: a.height || 0 })
-      } catch { /* */ }
+      const found: DelegateEntry[] = []
+      for (let i = 1; i <= 50; i++) {
+        try {
+          const d = await rpc<GetDelegateResponse>("get_delegate", { delegate_address: `delegate${i}` })
+          found.push({ id: d.id, name: d.name, total_amount: d.total_amount })
+        } catch { break }
+      }
+      setDelegates(found)
     })()
-  }, [wallet.address])
+  }, [])
 
   const wrap = async (fn: () => Promise<void>) => {
     setError(""); setResult(""); setBusy(true)
-    try { await fn(); onAction() }
+    try {
+      await fn()
+      // Re-fetch after a short delay to let the tx get mined
+      setTimeout(fetchInfo, 2000)
+      onAction()
+    }
     catch (e) { setError(e instanceof Error ? e.message : "Transaction failed") }
     finally { setBusy(false) }
   }
@@ -554,7 +576,7 @@ function StakingActions({ wallet, onAction }: { wallet: Wallet; onAction: () => 
   const handleStake = () => wrap(async () => {
     const atomic = BigInt(Math.round(parseFloat(stakeAmount) * 1e9))
     assert(atomic > 0n, "Stake amount must be positive")
-    assert((info?.delegateId ?? 0) > 0, "Set a delegate before staking")
+    assert((info?.delegateId ?? 0) > 0, "Set a delegate first (takes ~15s to confirm)")
     const { hex, hash } = await createAndSignStake(wallet, atomic, info!.delegateId, info?.unlockHeight ?? 0)
     await submitTransaction(hex)
     setResult(hash); setStakeAmount("")
@@ -577,8 +599,36 @@ function StakingActions({ wallet, onAction }: { wallet: Wallet; onAction: () => 
     <Card>
       <CardHeader>
         <CardTitle className="font-display">Staking</CardTitle>
+        {info && (
+          <p className="text-xs text-muted-foreground">
+            Your delegate: {info.delegateId > 0 ? info.delegateId : "Not set"}
+          </p>
+        )}
       </CardHeader>
       <CardContent className="space-y-3">
+        {delegates.length > 0 && (
+          <div className="space-y-1.5">
+            <p className="text-xs font-medium text-muted-foreground">Available delegates</p>
+            <div className="rounded-lg border border-border/50 bg-secondary">
+              {delegates.map((d) => (
+                <button
+                  key={d.id}
+                  onClick={() => setDelegateInput(String(d.id))}
+                  className="flex w-full items-center justify-between px-3 py-2 text-left text-sm transition-colors hover:bg-muted first:rounded-t-lg last:rounded-b-lg"
+                >
+                  <span>
+                    <span className="font-medium">{d.name}</span>
+                    <span className="ml-2 text-xs text-muted-foreground">#{d.id}</span>
+                  </span>
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {formatCoin(d.total_amount)} LDG
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="flex gap-2">
           <Input placeholder="Delegate ID" type="number" value={delegateInput} onChange={(e) => setDelegateInput(e.target.value)} className="flex-1" />
           <Button onClick={handleSetDelegate} disabled={busy || !delegateInput} size="sm">Set</Button>
