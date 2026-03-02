@@ -41,22 +41,31 @@ type View = "landing" | "create-seed" | "create-password" | "unlock" | "dashboar
 const AUTO_LOCK_MS = 15 * 60 * 1000
 const BALANCE_POLL_MS = 15_000
 
-// Session persistence — survives page refresh, dies on tab close
+// Session persistence via localStorage (survives refresh + new tabs)
+// Cleared on explicit Lock or auto-lock timeout
+const SESSION_KEY = "wallet_session"
+
 function saveSession(name: string, wallet: Wallet) {
-  sessionStorage.setItem("wallet_session", JSON.stringify({
+  localStorage.setItem(SESSION_KEY, JSON.stringify({
     name,
     mnemonic: wallet.mnemonic,
     privateKey: Array.from(wallet.privateKey),
     publicKey: Array.from(wallet.publicKey),
     address: wallet.address,
+    savedAt: Date.now(),
   }))
 }
 
 function loadSession(): { name: string; wallet: Wallet } | null {
-  const raw = sessionStorage.getItem("wallet_session")
+  const raw = localStorage.getItem(SESSION_KEY)
   if (!raw) return null
   try {
     const parsed = JSON.parse(raw)
+    // Expire after AUTO_LOCK_MS of inactivity (savedAt is refreshed on every user action)
+    if (parsed.savedAt && Date.now() - parsed.savedAt > AUTO_LOCK_MS) {
+      localStorage.removeItem(SESSION_KEY)
+      return null
+    }
     return {
       name: parsed.name,
       wallet: {
@@ -71,7 +80,17 @@ function loadSession(): { name: string; wallet: Wallet } | null {
 }
 
 function clearSession() {
-  sessionStorage.removeItem("wallet_session")
+  localStorage.removeItem(SESSION_KEY)
+}
+
+function touchSession() {
+  const raw = localStorage.getItem(SESSION_KEY)
+  if (!raw) return
+  try {
+    const parsed = JSON.parse(raw)
+    parsed.savedAt = Date.now()
+    localStorage.setItem(SESSION_KEY, JSON.stringify(parsed))
+  } catch { /* */ }
 }
 
 export default function WalletPage() {
@@ -105,12 +124,13 @@ export default function WalletPage() {
     setView("landing")
   }, [])
 
-  // Auto-lock on inactivity
+  // Auto-lock on inactivity + keep session timestamp fresh
   useEffect(() => {
     if (view !== "dashboard") return
     const resetTimer = () => {
       if (autoLockRef.current) clearTimeout(autoLockRef.current)
       autoLockRef.current = setTimeout(lock, AUTO_LOCK_MS)
+      touchSession()
     }
     const events = ["mousedown", "keypress", "scroll", "touchstart"] as const
     for (const e of events) window.addEventListener(e, resetTimer, { passive: true })
