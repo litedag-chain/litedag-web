@@ -33,20 +33,19 @@ export function SiteFooter({ className }: { className?: string }) {
   return (
     <footer className={cn("border-t border-border/50", className)}>
       <div className="mx-auto max-w-7xl px-4 py-12">
-        {/* Logo */}
-        <div className="mb-8 flex items-center gap-2 font-semibold tracking-tight">
-          <span className="text-primary">&#9671;</span>
-          <span>LiteDAG</span>
+        <div className="mb-10">
+          <span className="text-lg font-bold tracking-tight" style={{ fontFamily: "var(--font-brand), monospace" }}>
+            LiteDAG
+          </span>
         </div>
 
-        {/* Link columns */}
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-10 sm:grid-cols-3">
           {columns.map((col) => (
             <div key={col.title}>
-              <h3 className="mb-3 text-sm font-medium text-muted-foreground">
+              <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-foreground">
                 {col.title}
               </h3>
-              <ul className="flex flex-col gap-2">
+              <ul className="flex flex-col gap-2.5">
                 {col.links.map((link) => (
                   <li key={link.label}>
                     <a
@@ -64,7 +63,6 @@ export function SiteFooter({ className }: { className?: string }) {
           ))}
         </div>
 
-        {/* Bottom bar */}
         <div className="mt-12 flex items-center justify-between border-t border-border/50 pt-6 text-xs text-muted-foreground">
           <span>&copy; 2026 LiteDAG</span>
           <span className="font-mono">LDG</span>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import { Geist, Geist_Mono, Inter_Tight } from "next/font/google"
 
 import "@litedag/ui/globals.css"
 import { Providers } from "@/components/providers"
@@ -14,6 +14,12 @@ const fontSans = Geist({
 const fontMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
+})
+
+const fontBrand = Inter_Tight({
+  weight: "600",
+  subsets: ["latin"],
+  variable: "--font-brand",
 })
 
 export const metadata: Metadata = {
@@ -33,7 +39,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`}
+        className={`${fontSans.variable} ${fontMono.variable} ${fontBrand.variable} font-sans antialiased`}
       >
         <Providers>
           <div className="flex min-h-svh flex-col">

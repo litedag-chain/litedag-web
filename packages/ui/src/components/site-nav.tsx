@@ -32,16 +32,17 @@ export function SiteNav({ currentSite }: { currentSite: SiteId }) {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex h-11 max-w-7xl items-center px-4">
+      <div className="mx-auto flex h-14 max-w-7xl items-center px-4">
         <a
           href={getSiteUrl(SITES[0]!, currentSite)}
-          className="flex items-center gap-1.5 text-sm font-semibold tracking-tight"
+          className="flex items-center gap-2"
         >
-          <span className="text-primary">&#9671;</span>
-          <span>LiteDAG</span>
+          <span className="text-lg font-bold tracking-tight text-foreground" style={{ fontFamily: "var(--font-brand), monospace" }}>
+            LiteDAG
+          </span>
         </a>
 
-        <nav className="ml-auto hidden items-center md:flex">
+        <nav className="ml-auto hidden items-center gap-1 md:flex">
           {SITES.map((site) => {
             const active = site.id === currentSite
             return (
@@ -49,7 +50,7 @@ export function SiteNav({ currentSite }: { currentSite: SiteId }) {
                 key={site.id}
                 href={getSiteUrl(site, currentSite)}
                 className={cn(
-                  "relative px-2.5 py-1 text-[13px] transition-colors",
+                  "relative rounded-md px-3 py-1.5 text-sm transition-colors",
                   active
                     ? "text-foreground"
                     : "text-muted-foreground hover:text-foreground",
@@ -57,7 +58,7 @@ export function SiteNav({ currentSite }: { currentSite: SiteId }) {
               >
                 {site.label}
                 {active && (
-                  <span className="absolute inset-x-2.5 -bottom-[calc(0.375rem+1px)] h-px bg-primary" />
+                  <span className="absolute inset-x-3 -bottom-[calc(0.625rem+1px)] h-px bg-primary" />
                 )}
               </a>
             )
@@ -68,24 +69,24 @@ export function SiteNav({ currentSite }: { currentSite: SiteId }) {
                 ? "/docs"
                 : getSiteUrl(SITES[0]!, currentSite) + "/docs"
             }
-            className="px-2.5 py-1 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
+            className="rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             Docs
           </a>
         </nav>
 
         <button
-          className="ml-auto inline-flex size-7 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground md:hidden"
+          className="ml-auto inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground md:hidden"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle menu"
         >
           {menuOpen ? (
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 6 6 18" />
               <path d="m6 6 12 12" />
             </svg>
           ) : (
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="4" x2="20" y1="12" y2="12" />
               <line x1="4" x2="20" y1="6" y2="6" />
               <line x1="4" x2="20" y1="18" y2="18" />
@@ -103,7 +104,7 @@ export function SiteNav({ currentSite }: { currentSite: SiteId }) {
                 key={site.id}
                 href={getSiteUrl(site, currentSite)}
                 className={cn(
-                  "rounded-sm px-2.5 py-1.5 text-[13px] transition-colors",
+                  "rounded-md px-3 py-2 text-sm transition-colors",
                   active
                     ? "bg-secondary text-foreground"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -120,7 +121,7 @@ export function SiteNav({ currentSite }: { currentSite: SiteId }) {
                 ? "/docs"
                 : getSiteUrl(SITES[0]!, currentSite) + "/docs"
             }
-            className="rounded-sm px-2.5 py-1.5 text-[13px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             onClick={() => setMenuOpen(false)}
           >
             Docs
