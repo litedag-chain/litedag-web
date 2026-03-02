@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Button } from "@litedag/ui/components/button"
+import { HeroBackground } from "@/components/hero-background"
 import {
   Card,
   CardDescription,
@@ -86,20 +87,21 @@ export default function Page() {
   return (
     <main className="min-h-svh">
       {/* Hero */}
-      <section className="flex flex-col items-center justify-center gap-6 px-4 py-32 text-center">
-        <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
+      <section className="relative flex flex-col items-center justify-center gap-6 overflow-hidden px-4 py-32 text-center">
+        <HeroBackground />
+        <h1 className="relative z-10 text-4xl font-bold tracking-tight sm:text-6xl">
           Beyond the impossible.
           <br />
           <span className="bg-gradient-to-r from-primary to-primary/50 bg-clip-text text-transparent">
             Meet the LiteDAG Protocol.
           </span>
         </h1>
-        <p className="max-w-2xl text-lg text-muted-foreground">
+        <p className="relative z-10 max-w-2xl text-lg text-muted-foreground">
           The world&apos;s first MiniDAG — a novel system that simulates a
           Directed Acyclic Graph (DAG) on a linear blockchain. Secured by
           multi-chain Proof-of-Work via Merge-Mining.
         </p>
-        <div className="flex gap-3">
+        <div className="relative z-10 flex gap-3">
           <Button asChild>
             <Link href="/docs/info/links#wallets">Get started</Link>
           </Button>

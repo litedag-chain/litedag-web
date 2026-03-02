@@ -13,8 +13,11 @@
   "aliases": {
     "components": "@litedag/ui/components",
     "utils": "@litedag/ui/lib/utils",
-    "hooks": "@litedag/ui/hooks",
+    "ui": "@litedag/ui/components",
     "lib": "@litedag/ui/lib",
-    "ui": "@litedag/ui/components"
+    "hooks": "@litedag/ui/hooks"
+  },
+  "registries": {
+    "@aceternity": "https://ui.aceternity.com/registry/{name}.json"
   }
 }
