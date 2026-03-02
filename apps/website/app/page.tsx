@@ -1,13 +1,9 @@
 import Link from "next/link"
 import { Button } from "@litedag/ui/components/button"
 import { HeroBackground } from "@/components/hero-background"
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@litedag/ui/components/card"
 import { Timeline, type TimelineItem } from "@litedag/ui/components/timeline"
+import { FeatureCards } from "@/components/feature-cards"
+import { HeroSubtitle } from "@/components/hero-subtitle"
 
 const features = [
   {
@@ -70,9 +66,7 @@ export default function Page() {
         <h1 className="relative z-10 text-4xl font-bold tracking-tight sm:text-6xl">
           Beyond the impossible.
           <br />
-          <span className="bg-gradient-to-r from-primary to-primary/50 bg-clip-text text-transparent">
-            Meet the LiteDAG Protocol.
-          </span>
+          <HeroSubtitle />
         </h1>
         <p className="relative z-10 max-w-2xl text-lg text-muted-foreground">
           The world&apos;s first MiniDAG — a novel system that simulates a
@@ -91,16 +85,7 @@ export default function Page() {
 
       {/* Features */}
       <section className="mx-auto max-w-5xl px-4 py-16">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((f) => (
-            <Card key={f.title}>
-              <CardHeader>
-                <CardTitle>{f.title}</CardTitle>
-                <CardDescription>{f.description}</CardDescription>
-              </CardHeader>
-            </Card>
-          ))}
-        </div>
+        <FeatureCards features={features} />
       </section>
 
       {/* Roadmap */}
