@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@litedag/ui/components/card"
+import { CopyText } from "@litedag/ui/components/copy-text"
 import {
   createWallet,
   restoreWallet,
@@ -38,6 +39,40 @@ import { COIN, TARGET_BLOCK_TIME } from "@litedag/shared/constants"
 type View = "landing" | "create-seed" | "create-password" | "unlock" | "dashboard"
 
 const AUTO_LOCK_MS = 15 * 60 * 1000
+const BALANCE_POLL_MS = 15_000
+
+// Session persistence — survives page refresh, dies on tab close
+function saveSession(name: string, wallet: Wallet) {
+  sessionStorage.setItem("wallet_session", JSON.stringify({
+    name,
+    mnemonic: wallet.mnemonic,
+    privateKey: Array.from(wallet.privateKey),
+    publicKey: Array.from(wallet.publicKey),
+    address: wallet.address,
+  }))
+}
+
+function loadSession(): { name: string; wallet: Wallet } | null {
+  const raw = sessionStorage.getItem("wallet_session")
+  if (!raw) return null
+  try {
+    const parsed = JSON.parse(raw)
+    return {
+      name: parsed.name,
+      wallet: {
+        mnemonic: parsed.mnemonic,
+        entropy: new Uint8Array(0),
+        privateKey: new Uint8Array(parsed.privateKey),
+        publicKey: new Uint8Array(parsed.publicKey),
+        address: parsed.address,
+      },
+    }
+  } catch { return null }
+}
+
+function clearSession() {
+  sessionStorage.removeItem("wallet_session")
+}
 
 export default function WalletPage() {
   const [view, setView] = useState<View>("landing")
@@ -47,15 +82,30 @@ export default function WalletPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [balance, setBalance] = useState<number | null>(null)
+  const [initialized, setInitialized] = useState(false)
   const autoLockRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Restore session on mount
+  useEffect(() => {
+    const session = loadSession()
+    if (session) {
+      setWallet(session.wallet)
+      setWalletName(session.name)
+      setView("dashboard")
+    }
+    setInitialized(true)
+  }, [])
 
   const lock = useCallback(() => {
+    clearSession()
     setWallet(null)
     setBalance(null)
     setPassword("")
     setView("landing")
   }, [])
 
+  // Auto-lock on inactivity
   useEffect(() => {
     if (view !== "dashboard") return
     const resetTimer = () => {
@@ -76,6 +126,21 @@ export default function WalletPage() {
       const res = await rpc<GetAddressResponse>("get_address", { address })
       setBalance(res.balance)
     } catch { /* node not reachable */ }
+  }, [])
+
+  // Auto-poll balance every 15s while on dashboard
+  useEffect(() => {
+    if (view !== "dashboard" || !wallet) return
+    refreshBalance(wallet.address)
+    pollRef.current = setInterval(() => refreshBalance(wallet.address), BALANCE_POLL_MS)
+    return () => { if (pollRef.current) clearInterval(pollRef.current) }
+  }, [view, wallet, refreshBalance])
+
+  const openDashboard = useCallback((w: Wallet, name: string) => {
+    setWallet(w)
+    setWalletName(name)
+    saveSession(name, w)
+    setView("dashboard")
   }, [])
 
   const handleCreate = () => {
@@ -103,8 +168,7 @@ export default function WalletPage() {
     try {
       const encrypted = await encryptWallet(wallet, password)
       localStorage.setItem(`wallet:${walletName}`, encrypted)
-      await refreshBalance(wallet.address)
-      setView("dashboard")
+      openDashboard(wallet, walletName)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save wallet")
     }
@@ -116,9 +180,7 @@ export default function WalletPage() {
       const encrypted = localStorage.getItem(`wallet:${walletName}`)
       if (!encrypted) { setError("Wallet not found"); return }
       const w = await decryptWallet(encrypted, password)
-      setWallet(w)
-      await refreshBalance(w.address)
-      setView("dashboard")
+      openDashboard(w, walletName)
     } catch {
       setError("Wrong password or corrupted wallet")
     }
@@ -128,13 +190,16 @@ export default function WalletPage() {
     ? Object.keys(localStorage).filter((k) => k.startsWith("wallet:")).map((k) => k.slice(7))
     : []
 
+  // Don't render until session restore attempt completes
+  if (!initialized) return null
+
   if (view === "dashboard" && wallet) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
-          <div>
+          <div className="min-w-0">
             <p className="font-display text-2xl font-semibold tracking-tight">{walletName}</p>
-            <p className="mt-1 break-all font-mono text-xs text-muted-foreground">{wallet.address}</p>
+            <CopyText text={wallet.address} size="xs" truncate="none" className="mt-1 text-muted-foreground" />
           </div>
           <Button variant="outline" size="sm" onClick={lock}>Lock</Button>
         </div>
@@ -148,9 +213,6 @@ export default function WalletPage() {
               <p className="font-display text-2xl font-bold tracking-tight">
                 {balance !== null ? `${formatCoin(balance)} LDG` : "..."}
               </p>
-              <Button variant="ghost" size="xs" className="mt-1" onClick={() => refreshBalance(wallet.address)}>
-                Refresh
-              </Button>
             </CardContent>
           </Card>
 
@@ -159,7 +221,7 @@ export default function WalletPage() {
               <CardTitle className="text-sm text-muted-foreground">Public Key</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="break-all font-mono text-xs text-muted-foreground">{formatPublicKey(wallet.publicKey)}</p>
+              <CopyText text={formatPublicKey(wallet.publicKey)} size="xs" className="text-muted-foreground" />
             </CardContent>
           </Card>
 
@@ -177,7 +239,6 @@ export default function WalletPage() {
     )
   }
 
-  // Centered forms for landing/create/unlock
   if (view === "create-seed") {
     return (
       <div className="mx-auto max-w-7xl px-4 py-8">
@@ -190,9 +251,12 @@ export default function WalletPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
-              <div className="rounded-lg border border-border/50 bg-secondary p-4 font-mono text-sm leading-relaxed">
-                {mnemonic}
-              </div>
+              <CopyText
+                text={mnemonic}
+                truncate="none"
+                size="sm"
+                className="rounded-lg border border-border/50 bg-secondary p-4 leading-relaxed text-foreground"
+              />
               <Button onClick={() => setView("create-password")}>I saved my seed phrase</Button>
             </CardContent>
           </Card>
@@ -392,7 +456,7 @@ function SendForm({ wallet, onSent }: { wallet: Wallet; onSent: () => void }) {
       const atomicAmount = BigInt(Math.round(parseFloat(amount) * 1e9))
       const { hex, hash } = await createAndSignTransfer(wallet, [{ recipient, amount: atomicAmount }])
       await submitTransaction(hex)
-      setResult(`Sent! TX: ${hash}`)
+      setResult(hash)
       setRecipient(""); setAmount("")
       onSent()
     } catch (e) {
@@ -409,7 +473,12 @@ function SendForm({ wallet, onSent }: { wallet: Wallet; onSent: () => void }) {
         <Input placeholder="Recipient address" value={recipient} onChange={(e) => setRecipient(e.target.value)} />
         <Input type="number" placeholder="Amount (LDG)" value={amount} onChange={(e) => setAmount(e.target.value)} />
         {error && <p className="text-sm text-destructive">{error}</p>}
-        {result && <p className="break-all text-sm text-muted-foreground">{result}</p>}
+        {result && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>Sent!</span>
+            <CopyText text={result} size="xs" className="text-muted-foreground" />
+          </div>
+        )}
         <Button onClick={handleSend} disabled={sending || !recipient || !amount}>
           {sending ? "Sending..." : "Send"}
         </Button>
@@ -459,7 +528,7 @@ function StakingActions({ wallet, onAction }: { wallet: Wallet; onAction: () => 
     assert(!isNaN(id) && id > 0, "Delegate ID must be a positive integer")
     const { hex, hash } = await createAndSignSetDelegate(wallet, id, info?.delegateId ?? 0)
     await submitTransaction(hex)
-    setResult(`Delegate set! TX: ${hash}`); setDelegateInput("")
+    setResult(hash); setDelegateInput("")
   })
 
   const handleStake = () => wrap(async () => {
@@ -468,7 +537,7 @@ function StakingActions({ wallet, onAction }: { wallet: Wallet; onAction: () => 
     assert((info?.delegateId ?? 0) > 0, "Set a delegate before staking")
     const { hex, hash } = await createAndSignStake(wallet, atomic, info!.delegateId, info?.unlockHeight ?? 0)
     await submitTransaction(hex)
-    setResult(`Staked! TX: ${hash}`); setStakeAmount("")
+    setResult(hash); setStakeAmount("")
   })
 
   const handleUnstake = () => wrap(async () => {
@@ -481,7 +550,7 @@ function StakingActions({ wallet, onAction }: { wallet: Wallet; onAction: () => 
     }
     const { hex, hash } = await createAndSignUnstake(wallet, atomic, info!.delegateId)
     await submitTransaction(hex)
-    setResult(`Unstaked! TX: ${hash}`); setUnstakeAmount("")
+    setResult(hash); setUnstakeAmount("")
   })
 
   return (
@@ -503,7 +572,12 @@ function StakingActions({ wallet, onAction }: { wallet: Wallet; onAction: () => 
           <Button onClick={handleUnstake} disabled={busy || !unstakeAmount} size="sm" variant="outline">Unstake</Button>
         </div>
         {error && <p className="text-sm text-destructive">{error}</p>}
-        {result && <p className="break-all text-sm text-muted-foreground">{result}</p>}
+        {result && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>TX:</span>
+            <CopyText text={result} size="xs" className="text-muted-foreground" />
+          </div>
+        )}
       </CardContent>
     </Card>
   )
@@ -581,7 +655,7 @@ function TransactionHistory({ wallet }: { wallet: Wallet }) {
             {txs.map((tx) => (
               <div key={tx.txid} className="flex items-center justify-between gap-4 border-b border-border/30 pb-2 last:border-0">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-mono text-xs text-muted-foreground">{tx.txid}</p>
+                  <CopyText text={tx.txid} size="xs" className="text-muted-foreground" />
                   <p className="text-xs text-muted-foreground">
                     Block {tx.height} &middot; {new Date(tx.time).toLocaleString()}
                   </p>
