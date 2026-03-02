@@ -281,3 +281,24 @@ export async function createAndSignUnstake(
 export async function submitTransaction(hex: string): Promise<{ result: boolean }> {
   return rpc<{ result: boolean }>("submit_transaction", { hex })
 }
+
+// --- Fee estimation (for confirmation dialogs) ---
+
+export function estimateTransferFee(outputs: TransferOutput[]): bigint {
+  const data = serializeTransferData(
+    outputs.map((o) => ({ recipient: o.recipient, paymentId: o.paymentId ?? 0, amount: o.amount }))
+  )
+  const tx: Tx = {
+    version: TX_VERSION_TRANSFER,
+    signer: Array.from(new Uint8Array(32)),
+    signature: new Uint8Array(SIGNATURE_SIZE),
+    data,
+    nonce: 1,
+    fee: 0n,
+  }
+  return calculateFee(tx)
+}
+
+export const SET_DELEGATE_FEE = fixedFee(1000)
+export const STAKE_FEE = fixedFee(256)
+export const UNSTAKE_FEE = fixedFee(8)

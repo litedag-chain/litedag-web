@@ -13,3 +13,10 @@ export async function rpc<T>(method: string, params: Record<string, unknown> = {
   if (json.error) throw new Error(json.error.message)
   return json.result!
 }
+
+export function explorerUrl(path: string): string {
+  if (typeof window !== "undefined" && window.location.hostname === "localhost") {
+    return `http://localhost:3001${path}`
+  }
+  return `https://explorer.litedag.com${path}`
+}

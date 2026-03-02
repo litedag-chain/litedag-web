@@ -12,24 +12,25 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@noble/curves": "^2.0.1",
-    "@noble/hashes": "^1.7.1",
     "@litedag/shared": "workspace:*",
     "@litedag/ui": "workspace:*",
+    "@noble/curves": "^2.0.1",
+    "@noble/hashes": "^1.7.1",
     "bip39": "^3.1.0",
     "lucide-react": "^0.563.0",
     "next": "16.1.6",
     "next-themes": "^0.4.6",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.4",
+    "recharts": "^3.7.0"
   },
   "devDependencies": {
+    "@litedag/eslint-config": "workspace:^",
+    "@litedag/typescript-config": "workspace:*",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "^25.1.0",
     "@types/react": "^19.2.10",
     "@types/react-dom": "^19.2.3",
-    "@litedag/eslint-config": "workspace:^",
-    "@litedag/typescript-config": "workspace:*",
     "eslint": "^9.39.2",
     "typescript": "^5.9.3"
   }
