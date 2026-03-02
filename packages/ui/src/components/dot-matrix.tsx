@@ -102,7 +102,7 @@ const DotMatrixShader = ({
     <ShaderCanvas
       source={FRAGMENT_SHADER}
       uniforms={uniforms}
-      maxFps={60}
+      maxFps={30}
     />
   )
 }
