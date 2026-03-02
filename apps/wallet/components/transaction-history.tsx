@@ -27,7 +27,7 @@ export type TxEntry = {
 const TX_TYPE_CONFIG: Record<TxType, { icon: typeof ArrowUpRight; colorClass: string; bgClass: string; amountClass: string }> = {
   reward:   { icon: Pickaxe,      colorClass: "text-green-500", bgClass: "bg-green-500/10", amountClass: "text-green-500" },
   received: { icon: ArrowDownLeft, colorClass: "text-green-500", bgClass: "bg-green-500/10", amountClass: "text-green-500" },
-  sent:     { icon: ArrowUpRight,  colorClass: "text-red-500",   bgClass: "bg-red-500/10",   amountClass: "text-red-500" },
+  sent:     { icon: ArrowUpRight,  colorClass: "text-amber-500",  bgClass: "bg-amber-500/10",  amountClass: "text-amber-500" },
   staking:  { icon: Layers,        colorClass: "text-primary",   bgClass: "bg-primary/10",   amountClass: "text-primary" },
   self:     { icon: RefreshCw,     colorClass: "text-muted-foreground", bgClass: "bg-muted",  amountClass: "text-muted-foreground" },
 }
