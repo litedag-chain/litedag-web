@@ -46,8 +46,6 @@ export default async function Page() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold">LiteDAG Explorer</h1>
-
       {/* Chain info */}
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>

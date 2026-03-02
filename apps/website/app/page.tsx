@@ -86,11 +86,13 @@ export default function Page() {
   return (
     <main className="min-h-svh">
       {/* Hero */}
-      <section className="flex flex-col items-center justify-center gap-6 px-4 py-24 text-center">
+      <section className="flex flex-col items-center justify-center gap-6 px-4 py-32 text-center">
         <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
           Beyond the impossible.
           <br />
-          <span className="text-muted-foreground">Meet the LiteDAG Protocol.</span>
+          <span className="bg-gradient-to-r from-primary to-primary/50 bg-clip-text text-transparent">
+            Meet the LiteDAG Protocol.
+          </span>
         </h1>
         <p className="max-w-2xl text-lg text-muted-foreground">
           The world&apos;s first MiniDAG — a novel system that simulates a

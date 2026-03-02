@@ -106,8 +106,7 @@ export default function WalletPage() {
   if (view === "dashboard" && wallet) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">LiteDAG Wallet</h1>
+        <div className="mb-6 flex items-center justify-end">
           <Button variant="outline" onClick={handleLock}>
             Lock
           </Button>
@@ -145,7 +144,7 @@ export default function WalletPage() {
 
   if (view === "create-seed") {
     return (
-      <div className="mx-auto flex min-h-svh max-w-lg flex-col items-center justify-center px-4">
+      <div className="mx-auto flex max-w-lg flex-col items-center justify-center px-4 py-16">
         <Card className="w-full">
           <CardHeader>
             <CardTitle>Your Seed Phrase</CardTitle>
@@ -166,7 +165,7 @@ export default function WalletPage() {
 
   if (view === "create-password") {
     return (
-      <div className="mx-auto flex min-h-svh max-w-lg flex-col items-center justify-center px-4">
+      <div className="mx-auto flex max-w-lg flex-col items-center justify-center px-4 py-16">
         <Card className="w-full">
           <CardHeader>
             <CardTitle>Set Wallet Password</CardTitle>
@@ -198,7 +197,7 @@ export default function WalletPage() {
 
   if (view === "unlock") {
     return (
-      <div className="mx-auto flex min-h-svh max-w-lg flex-col items-center justify-center px-4">
+      <div className="mx-auto flex max-w-lg flex-col items-center justify-center px-4 py-16">
         <Card className="w-full">
           <CardHeader>
             <CardTitle>Unlock Wallet</CardTitle>
@@ -231,9 +230,7 @@ export default function WalletPage() {
 
   // Landing
   return (
-    <div className="mx-auto flex min-h-svh max-w-lg flex-col items-center justify-center px-4">
-      <h1 className="mb-8 text-3xl font-bold">LiteDAG Wallet</h1>
-
+    <div className="mx-auto flex max-w-lg flex-col items-center px-4 py-16">
       <Tabs defaultValue="create" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="create">Create</TabsTrigger>
