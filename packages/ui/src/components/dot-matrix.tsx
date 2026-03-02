@@ -108,7 +108,6 @@ const DotMatrixShader = ({
 }
 
 const FRAGMENT_SHADER = `
-  precision mediump float;
   in vec2 fragCoord;
 
   uniform float u_time;
@@ -150,8 +149,6 @@ const FRAGMENT_SHADER = `
 `
 
 const VERTEX_SHADER = `
-  precision mediump float;
-  in vec2 coordinates;
   uniform vec2 u_resolution;
   out vec2 fragCoord;
   void main(){
