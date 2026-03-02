@@ -75,10 +75,10 @@ function FeatureCard({ fig, title, description, Icon }: {
         />
       </div>
       <div className="flex flex-col gap-1.5 p-5">
-        <h3 className="text-sm font-semibold">
+        <h3 className="text-sm font-semibold" style={{ fontFamily: "var(--font-display), sans-serif" }}>
           <EncryptedText text={title} revealDelayMs={40} flipDelayMs={30} encryptedClassName="opacity-30" />
         </h3>
-        <p className="text-[13px] leading-relaxed text-muted-foreground/80">{description}</p>
+        <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
       </div>
     </div>
   )

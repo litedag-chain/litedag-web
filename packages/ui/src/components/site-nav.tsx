@@ -50,7 +50,7 @@ export function SiteNav({ currentSite }: { currentSite: SiteId }) {
                 key={site.id}
                 href={getSiteUrl(site, currentSite)}
                 className={cn(
-                  "relative rounded-md px-3 py-1.5 text-sm transition-colors",
+                  "relative rounded-md px-3 py-1.5 text-sm tracking-wide transition-colors",
                   active
                     ? "text-foreground"
                     : "text-muted-foreground hover:text-foreground",
@@ -69,7 +69,7 @@ export function SiteNav({ currentSite }: { currentSite: SiteId }) {
                 ? "/docs"
                 : getSiteUrl(SITES[0]!, currentSite) + "/docs"
             }
-            className="rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="rounded-md px-3 py-1.5 text-sm tracking-wide text-muted-foreground transition-colors hover:text-foreground"
           >
             Docs
           </a>

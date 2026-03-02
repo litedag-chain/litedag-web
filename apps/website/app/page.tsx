@@ -29,11 +29,11 @@ export default function Page() {
       <section className="relative flex h-[calc(100svh-3.5rem)] items-center overflow-hidden">
         <HeroDotMatrix />
         <div className="relative z-10 mx-auto flex w-full max-w-7xl items-center px-4">
-          <div className="flex max-w-lg flex-col gap-5">
-            <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
+          <div className="flex max-w-lg flex-col gap-4">
+            <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl" style={{ fontFamily: "var(--font-display), sans-serif" }}>
               The lightest DAG.
             </h1>
-            <p className="max-w-md text-[15px] leading-relaxed text-muted-foreground">
+            <p className="max-w-md text-base leading-[1.65] text-muted-foreground/90">
               DAG benefits on a linear chain. Hybrid PoW/PoS with merge-mining.
             </p>
             <HeroSubtitle />
