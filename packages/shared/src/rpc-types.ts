@@ -57,6 +57,32 @@ export type GetInfoResponse = {
   peers: number
 }
 
+// Transaction versions — matches transaction/tx_data.go iota
+export const TX_VERSION_TRANSFER = 1
+export const TX_VERSION_REGISTER_DELEGATE = 2
+export const TX_VERSION_SET_DELEGATE = 3
+export const TX_VERSION_STAKE = 4
+export const TX_VERSION_UNSTAKE = 5
+
+// StateInput types — matches transaction/inout.go iota
+export const IN_NORMAL = 0
+export const IN_UNSTAKE = 1
+
+// StateOutput types — matches transaction/inout.go iota
+export const OUT_NORMAL = 0
+export const OUT_COINBASE_DEV = 1
+export const OUT_COINBASE_POW = 2
+export const OUT_COINBASE_POS = 3
+export const OUT_COINBASE_BURN = 4
+export const OUT_STAKE = 5
+
+export type TxInput = {
+  type: number
+  amount: number
+  sender: string
+  extra_data: number
+}
+
 export type TxOutput = {
   type: number
   amount: number
@@ -67,7 +93,8 @@ export type TxOutput = {
 
 export type GetTransactionResponse = {
   sender: string | null
-  inputs: unknown[]
+  version: number
+  inputs: TxInput[]
   outputs: TxOutput[]
   total_amount: number
   fee: number

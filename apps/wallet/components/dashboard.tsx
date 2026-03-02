@@ -11,30 +11,32 @@ import { TransactionHistory, type TxEntry } from "@/components/transaction-histo
 import type { BalancePoint } from "@/components/balance-chart"
 import { Lock } from "lucide-react"
 import type { Wallet } from "@/lib/crypto"
+import {
+  TX_VERSION_TRANSFER,
+  TX_VERSION_REGISTER_DELEGATE,
+  TX_VERSION_SET_DELEGATE,
+  TX_VERSION_STAKE,
+  TX_VERSION_UNSTAKE,
+  IN_UNSTAKE,
+  OUT_STAKE,
+} from "@litedag/shared/rpc-types"
 import type { GetAddressResponse, GetDelegateResponse, GetTxListResponse, GetTransactionResponse, GetInfoResponse } from "@litedag/shared/rpc-types"
 import { TARGET_BLOCK_TIME } from "@litedag/shared/constants"
 
 function txsToChartData(txs: TxEntry[], currentHeight: number, currentTotal: number): BalancePoint[] {
   if (txs.length === 0) return []
 
-  // Sort oldest first
   const sorted = [...txs].sort((a, b) => a.height - b.height)
 
-  // Walk forward from 0, summing deltas.
-  // For "staking" type: the amount field is -(fee) but the principal stays in
-  // the wallet (moved to staked). So the total balance delta is just the fee.
-  // The tx classification already handles this — staking.amount = -(fee).
-  // For "sent": amount = -(total_amount + fee), which correctly reduces total.
-  // For "received"/"reward": amount = positive incoming.
+  // Walk forward summing deltas. Staking ops only count the fee (principal
+  // stays in wallet as staked). Start from 0 — any gap vs currentTotal at
+  // the end is from mining/staking rewards not in the tx list.
   let running = 0
   const points: BalancePoint[] = []
-
   for (const tx of sorted) {
     running += tx.amount
     points.push({ height: tx.height, balance: running })
   }
-
-  // Add current balance as the final point at current height
   points.push({ height: currentHeight, balance: currentTotal })
 
   return points
@@ -153,26 +155,64 @@ export function Dashboard({ wallet, walletName, onLock }: {
             const tx = details[j]; const txid = batch[j]!
             if (!tx) continue
 
+            const outputs = tx.outputs ?? []
+            const inputs = tx.inputs ?? []
+
+            // Classify using tx.version (requires updated node) or
+            // output/input types (already in current RPC response)
+            const v = tx.version || 0
+            const isStake = v === TX_VERSION_STAKE || outputs.some((o) => o.type === OUT_STAKE)
+            const isUnstake = v === TX_VERSION_UNSTAKE || inputs.some((i) => i.type === IN_UNSTAKE)
+            const isSetDelegate = v === TX_VERSION_SET_DELEGATE ||
+              (v === 0 && tx.sender === wallet.address && outputs.length === 0 && !tx.coinbase)
+            const isRegisterDelegate = v === TX_VERSION_REGISTER_DELEGATE
+
             let type: TxEntry["type"]
-            let amountAtomic: number
+            let label: string
+            let amountAtomic: number // balance delta for chart (total = available + staked)
+            let displayAmount: number // meaningful amount shown in UI
+
             if (tx.coinbase) {
               type = "reward"
-              amountAtomic = (tx.outputs ?? []).reduce((sum, out) => out.recipient === wallet.address ? sum + (out.amount || 0) : sum, 0)
-            } else if (tx.sender === wallet.address && (tx.outputs ?? []).length === 0) {
+              label = "Reward"
+              displayAmount = outputs.reduce((sum, out) => out.recipient === wallet.address ? sum + (out.amount || 0) : sum, 0)
+              amountAtomic = displayAmount
+            } else if (isStake) {
               type = "staking"
+              label = "Staked"
+              displayAmount = tx.total_amount
               amountAtomic = -(tx.fee || 0)
+            } else if (isUnstake) {
+              type = "staking"
+              label = "Unstaked"
+              displayAmount = tx.total_amount + (tx.fee || 0) // Go: Unstake.TotalAmount = amount - fee
+              amountAtomic = -(tx.fee || 0)
+            } else if (isSetDelegate) {
+              type = "staking"
+              label = "Set Delegate"
+              displayAmount = 0
+              amountAtomic = -(tx.fee || 0)
+            } else if (isRegisterDelegate) {
+              type = "staking"
+              label = "Register Delegate"
+              displayAmount = tx.total_amount // 1000 LDG burn
+              amountAtomic = -(tx.total_amount + (tx.fee || 0))
             } else if (tx.sender === wallet.address) {
               type = "sent"
-              amountAtomic = -((tx.total_amount || 0) + (tx.fee || 0))
+              label = "Sent"
+              displayAmount = tx.total_amount + (tx.fee || 0)
+              amountAtomic = -(displayAmount)
             } else {
               type = "received"
-              amountAtomic = (tx.outputs ?? []).reduce((sum, out) => out.recipient === wallet.address ? sum + (out.amount || 0) : sum, 0)
+              label = "Received"
+              displayAmount = outputs.reduce((sum, out) => out.recipient === wallet.address ? sum + (out.amount || 0) : sum, 0)
+              amountAtomic = displayAmount
             }
 
             let timeMs = Date.now()
             if (tx.height && tx.height < height) timeMs -= (height - tx.height) * TARGET_BLOCK_TIME * 1000
 
-            entries.push({ txid, type, amount: amountAtomic, fee: tx.fee || 0, height: tx.height || 0, time: timeMs })
+            entries.push({ txid, type, label, amount: amountAtomic, displayAmount, fee: tx.fee || 0, height: tx.height || 0, time: timeMs })
           }
         }
 

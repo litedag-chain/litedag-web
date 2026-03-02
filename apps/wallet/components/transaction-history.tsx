@@ -16,17 +16,19 @@ type TxType = "reward" | "sent" | "received" | "staking"
 export type TxEntry = {
   txid: string
   type: TxType
-  amount: number // atomic units, signed (positive = in, negative = out)
+  label: string // display label ("Reward", "Sent", "Received", "Staked", "Unstaked", "Set Delegate")
+  amount: number // balance delta in atomic units (for chart), signed
+  displayAmount: number // amount to show in UI, always positive
   fee: number
   height: number
   time: number
 }
 
-const TX_TYPE_CONFIG: Record<TxType, { label: string; icon: typeof ArrowUpRight; colorClass: string; bgClass: string }> = {
-  reward:   { label: "Reward",   icon: Pickaxe,      colorClass: "text-green-500", bgClass: "bg-green-500/10" },
-  received: { label: "Received", icon: ArrowDownLeft, colorClass: "text-green-500", bgClass: "bg-green-500/10" },
-  sent:     { label: "Sent",     icon: ArrowUpRight,  colorClass: "text-red-500",   bgClass: "bg-red-500/10" },
-  staking:  { label: "Staking",  icon: Layers,        colorClass: "text-primary",   bgClass: "bg-primary/10" },
+const TX_TYPE_CONFIG: Record<TxType, { icon: typeof ArrowUpRight; colorClass: string; bgClass: string; amountClass: string }> = {
+  reward:   { icon: Pickaxe,      colorClass: "text-green-500", bgClass: "bg-green-500/10", amountClass: "text-green-500" },
+  received: { icon: ArrowDownLeft, colorClass: "text-green-500", bgClass: "bg-green-500/10", amountClass: "text-green-500" },
+  sent:     { icon: ArrowUpRight,  colorClass: "text-red-500",   bgClass: "bg-red-500/10",   amountClass: "text-red-500" },
+  staking:  { icon: Layers,        colorClass: "text-primary",   bgClass: "bg-primary/10",   amountClass: "text-primary" },
 }
 
 export function TransactionHistory({ txs, loading }: { txs: TxEntry[]; loading: boolean }) {
@@ -45,7 +47,7 @@ export function TransactionHistory({ txs, loading }: { txs: TxEntry[]; loading: 
             {txs.map((tx) => {
               const cfg = TX_TYPE_CONFIG[tx.type]
               const Icon = cfg.icon
-              const isPositive = tx.amount >= 0
+              const prefix = tx.type === "staking" ? "" : tx.amount >= 0 ? "+" : "-"
 
               return (
                 <div key={tx.txid} className="flex items-start gap-3 border-b border-border/30 pb-3 last:border-0 last:pb-0">
@@ -55,11 +57,13 @@ export function TransactionHistory({ txs, loading }: { txs: TxEntry[]; loading: 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">{cfg.label}</span>
+                        <span className="text-sm font-medium">{tx.label}</span>
                       </div>
-                      <span className={`shrink-0 font-mono text-sm font-medium ${isPositive ? "text-green-500" : "text-red-500"}`}>
-                        {isPositive ? "+" : ""}{formatCoin(Math.abs(tx.amount))} LDG
-                      </span>
+                      {tx.displayAmount > 0 && (
+                        <span className={`shrink-0 font-mono text-sm font-medium ${cfg.amountClass}`}>
+                          {prefix}{formatCoin(tx.displayAmount)} LDG
+                        </span>
+                      )}
                     </div>
                     <div className="mt-1 flex items-center gap-2">
                       <CopyText text={tx.txid} size="xs" className="text-muted-foreground" />
