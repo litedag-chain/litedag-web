@@ -1,0 +1,13 @@
+{
+  "name": "@litedag/shared",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "devDependencies": {
+    "@litedag/typescript-config": "workspace:*",
+    "typescript": "^5.9.3"
+  }
+}

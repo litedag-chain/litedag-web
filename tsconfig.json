@@ -1,0 +1,4 @@
+{
+  "extends": "@litedag/typescript-config/base.json"
+}
+
