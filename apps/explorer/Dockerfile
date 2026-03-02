@@ -4,8 +4,10 @@ RUN apk add --no-cache libc6-compat
 
 FROM base AS pruner
 WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+RUN pnpm install --frozen-lockfile
 COPY . .
-RUN pnpm dlx turbo prune @litedag/explorer --docker
+RUN pnpm turbo prune @litedag/explorer --docker
 
 FROM base AS builder
 WORKDIR /app
