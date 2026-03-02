@@ -12,13 +12,10 @@ import type { BalancePoint } from "@/components/balance-chart"
 import { Lock } from "lucide-react"
 import type { Wallet } from "@/lib/crypto"
 import {
-  TX_VERSION_TRANSFER,
   TX_VERSION_REGISTER_DELEGATE,
   TX_VERSION_SET_DELEGATE,
   TX_VERSION_STAKE,
   TX_VERSION_UNSTAKE,
-  IN_UNSTAKE,
-  OUT_STAKE,
 } from "@litedag/shared/rpc-types"
 import type { GetAddressResponse, GetDelegateResponse, GetTxListResponse, GetTransactionResponse, GetInfoResponse } from "@litedag/shared/rpc-types"
 import { TARGET_BLOCK_TIME } from "@litedag/shared/constants"
@@ -156,46 +153,36 @@ export function Dashboard({ wallet, walletName, onLock }: {
             if (!tx) continue
 
             const outputs = tx.outputs ?? []
-            const inputs = tx.inputs ?? []
-
-            // Classify using tx.version (requires updated node) or
-            // output/input types (already in current RPC response)
-            const v = tx.version || 0
-            const isStake = v === TX_VERSION_STAKE || outputs.some((o) => o.type === OUT_STAKE)
-            const isUnstake = v === TX_VERSION_UNSTAKE || inputs.some((i) => i.type === IN_UNSTAKE)
-            const isSetDelegate = v === TX_VERSION_SET_DELEGATE ||
-              (v === 0 && tx.sender === wallet.address && outputs.length === 0 && !tx.coinbase)
-            const isRegisterDelegate = v === TX_VERSION_REGISTER_DELEGATE
 
             let type: TxEntry["type"]
             let label: string
-            let amountAtomic: number // balance delta for chart (total = available + staked)
-            let displayAmount: number // meaningful amount shown in UI
+            let amountAtomic: number
+            let displayAmount: number
 
             if (tx.coinbase) {
               type = "reward"
               label = "Reward"
               displayAmount = outputs.reduce((sum, out) => out.recipient === wallet.address ? sum + (out.amount || 0) : sum, 0)
               amountAtomic = displayAmount
-            } else if (isStake) {
+            } else if (tx.version === TX_VERSION_STAKE) {
               type = "staking"
               label = "Staked"
               displayAmount = tx.total_amount
               amountAtomic = -(tx.fee || 0)
-            } else if (isUnstake) {
+            } else if (tx.version === TX_VERSION_UNSTAKE) {
               type = "staking"
               label = "Unstaked"
-              displayAmount = tx.total_amount + (tx.fee || 0) // Go: Unstake.TotalAmount = amount - fee
+              displayAmount = tx.total_amount + (tx.fee || 0)
               amountAtomic = -(tx.fee || 0)
-            } else if (isSetDelegate) {
+            } else if (tx.version === TX_VERSION_SET_DELEGATE) {
               type = "staking"
               label = "Set Delegate"
               displayAmount = 0
               amountAtomic = -(tx.fee || 0)
-            } else if (isRegisterDelegate) {
+            } else if (tx.version === TX_VERSION_REGISTER_DELEGATE) {
               type = "staking"
               label = "Register Delegate"
-              displayAmount = tx.total_amount // 1000 LDG burn
+              displayAmount = tx.total_amount
               amountAtomic = -(tx.total_amount + (tx.fee || 0))
             } else if (tx.sender === wallet.address) {
               type = "sent"
