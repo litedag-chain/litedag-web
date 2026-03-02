@@ -5,7 +5,7 @@ title: Wallet RPC API documentation
 This is a list of the litedag-wallet-cli RPC calls, their inputs and outputs, and examples of each.
 All the RPC calls use the wallet's JSON RPC interface, as demonstrated below. The wallet implements the jsonrpc 2.0 standard.
 
-Note: "atomic units" refer to the smallest fraction of 1 XST according to the implementation. 1 XST = 1e9 atomic units.
+Note: "atomic units" refer to the smallest fraction of 1 LDG according to the implementation. 1 LDG = 1e9 atomic units.
 
 ## Methods
 

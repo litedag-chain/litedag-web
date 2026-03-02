@@ -4,6 +4,7 @@
 @source "../**/*.{ts,tsx}";
 
 @import "tw-animate-css";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -123,5 +124,9 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  .prose {
+    --tw-prose-links: var(--primary);
+    --tw-prose-invert-links: var(--primary);
   }
 }

@@ -32,7 +32,7 @@ export default async function TxPage({ params }: Props) {
   const confirmations = tx.height > 0 ? info.height - tx.height + 1 : 0
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8">
       <h1 className="mb-4 text-2xl font-bold">Transaction</h1>
 
       <Card className="mb-6">

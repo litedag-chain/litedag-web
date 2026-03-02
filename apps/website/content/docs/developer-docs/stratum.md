@@ -4,7 +4,7 @@ title: LiteDAG Stratum documentation
 
 The LiteDAG blockchain uses a modified version of the [XMRig Monero Stratum protocol](https://github.com/xmrig/xmrig-proxy/blob/master/doc/STRATUM.md), with a few differences to allow changing the nonce-extra to split the same job between multiple miners, and changes to better allow merge-mining.
 
-The LiteDAG node has an integrated Stratum server on port `6315` by default. Miners or pools can connect to the Stratum to receive the latest jobs and submit blocks.
+The LiteDAG node has an integrated Stratum server on port `6312` by default. Miners or pools can connect to the Stratum to receive the latest jobs and submit blocks.
 
 ## Protocol documentation
 

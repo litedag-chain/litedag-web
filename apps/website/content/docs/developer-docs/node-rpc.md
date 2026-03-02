@@ -5,7 +5,7 @@ title: Node RPC API documentation
 This is a list of the litedag-node daemon RPC calls, their inputs and outputs, and examples of each.
 All the RPC calls use the daemon's JSON RPC interface, as demonstrated below. The daemon implements the jsonrpc 2.0 standard.
 
-Note: "atomic units" refer to the smallest fraction of 1 XST according to the implementation. 1 XST = 1e9 atomic units.
+Note: "atomic units" refer to the smallest fraction of 1 LDG according to the implementation. 1 LDG = 1e9 atomic units.
 
 ## Methods
 
@@ -159,5 +159,5 @@ Outputs:
 
 Example:
 ```sh
-curl http://127.0.0.1:6311/json_rpc -d '{"jsonrpc":"2.0","id":0,"method":"calc_pow","params":{"blob":"your_blob_here","seed_hash":"your_seed_hash_here"}}' -H 'Content-Type: application/json'
+curl http://127.0.0.1:6311/json_rpc -d '{"jsonrpc":"2.0","id":0,"method":"validate_address","params":{"address":"your_address_here"}}' -H 'Content-Type: application/json'
 ```

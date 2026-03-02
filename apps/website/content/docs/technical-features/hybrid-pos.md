@@ -39,8 +39,9 @@ The requirement for the staking signature is delayed. The signature from the del
 ### 4. Validation and Penalties
 When a node receives block `N+3`, it checks for the presence of the valid staking signature for block `N`.
 *   **✅ Signature Present and Valid:**
-    *   The PoW miner of block `N+3` receives 100% of the PoW block reward.
-    *   The staking pool receives 100% of the PoS staking reward.
+    *   The PoW miner of block `N+3` receives 50% of the block reward.
+    *   The staking pool receives 40% of the block reward.
+    *   10% of the block reward goes to the governance fund.
     *   Block `N+3` contributes its **full difficulty** to the chain's cumulative difficulty (total work).
 
 *   **❌ Signature Missing or Invalid:**
@@ -71,7 +72,8 @@ The protocol encourages miners to build on the chain with the highest cumulative
 | Actor | Action | Reward | Penalty |
 | :--- | :--- | :--- | :--- |
 | **PoW Miner** | Mines a block & includes past signatures | 50% of Block Reward | 10% Reward Burn |
-| **Staking Pool** | Keeps node online, signs assigned blocks | 50% of Block Reward | 100% Reward Burn (if not included) |
+| **Staking Pool** | Keeps node online, signs assigned blocks | 40% of Block Reward | 100% Reward Burn (if not included) |
+| **Governance** | Protocol development fund | 10% of Block Reward | — |
 
 ## Conclusion
 

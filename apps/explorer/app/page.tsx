@@ -45,7 +45,7 @@ export default async function Page() {
   const blocks = await getRecentBlocks(info.height, 20)
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8">
       {/* Chain info */}
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -94,7 +94,7 @@ export default async function Page() {
           name="q"
           type="text"
           placeholder="Search by block height, hash, tx id, or address..."
-          className="w-full rounded-lg border bg-background px-4 py-2 text-sm"
+          className="w-full rounded-lg border border-border/50 bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus:border-primary focus:outline-none"
         />
       </form>
 

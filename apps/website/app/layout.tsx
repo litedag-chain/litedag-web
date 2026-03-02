@@ -1,31 +1,10 @@
 import type { Metadata } from "next"
-import { Geist, Geist_Mono, Inter_Tight, Space_Grotesk } from "next/font/google"
 
 import "@litedag/ui/globals.css"
+import { fontVariables } from "@litedag/ui/fonts"
 import { Providers } from "@/components/providers"
 import { SiteNav } from "@litedag/ui/components/site-nav"
 import { SiteFooter } from "@litedag/ui/components/site-footer"
-
-const fontSans = Geist({
-  subsets: ["latin"],
-  variable: "--font-sans",
-})
-
-const fontMono = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-})
-
-const fontBrand = Inter_Tight({
-  weight: "600",
-  subsets: ["latin"],
-  variable: "--font-brand",
-})
-
-const fontDisplay = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-display",
-})
 
 export const metadata: Metadata = {
   title: {
@@ -44,7 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${fontSans.variable} ${fontMono.variable} ${fontBrand.variable} ${fontDisplay.variable} font-sans antialiased`}
+        className={`${fontVariables} font-sans antialiased`}
       >
         <Providers>
           <div className="flex min-h-svh flex-col">

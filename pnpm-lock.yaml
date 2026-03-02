@@ -139,9 +139,6 @@ importers:
       '@shikijs/rehype':
         specifier: ^4.0.1
         version: 4.0.1
-      '@tailwindcss/typography':
-        specifier: ^0.5.19
-        version: 0.5.19
       '@types/mdx':
         specifier: ^2.0.13
         version: 2.0.13
@@ -280,6 +277,9 @@ importers:
       motion:
         specifier: ^12.34.3
         version: 12.34.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      next:
+        specifier: '>=16'
+        version: 16.1.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -317,6 +317,9 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4.1.18
         version: 4.2.1
+      '@tailwindcss/typography':
+        specifier: ^0.5.19
+        version: 0.5.19(tailwindcss@4.2.1)
       '@turbo/gen':
         specifier: ^2.8.1
         version: 2.8.12(@types/node@25.3.3)
@@ -5751,9 +5754,10 @@ snapshots:
       postcss: 8.5.6
       tailwindcss: 4.2.1
 
-  '@tailwindcss/typography@0.5.19':
+  '@tailwindcss/typography@0.5.19(tailwindcss@4.2.1)':
     dependencies:
       postcss-selector-parser: 6.0.10
+      tailwindcss: 4.2.1
 
   '@turbo/gen-darwin-64@2.8.12':
     optional: true

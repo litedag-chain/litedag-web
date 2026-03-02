@@ -45,7 +45,7 @@ export default async function BlockPage({ params }: Props) {
   const timestamp = new Date(block.block.header.timestamp).toUTCString()
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8">
       <div className="mb-4 flex items-center gap-3">
         <h1 className="text-2xl font-bold">Block {block.block.header.height.toLocaleString()}</h1>
         <Badge variant="secondary">{confirmations.toLocaleString()} confirmations</Badge>
