@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@litedag/ui/components/card"
-import { Badge } from "@litedag/ui/components/badge"
+import { Timeline, type TimelineItem } from "@litedag/ui/components/timeline"
 
 const features = [
   {
@@ -42,23 +42,23 @@ const features = [
   },
 ]
 
-const roadmap = [
-  { title: "Begin of the project", status: "done" as const, date: "Nov 2023" },
-  { title: "ASIC/FPGA/GPU-resistant PoW", status: "done" as const, date: "Jul 2024" },
-  { title: "Merge Mining Network", status: "done" as const, date: "Jul 2024" },
-  { title: "MiniDAG implementation", status: "done" as const, date: "Jan 2025" },
-  { title: "Website, Blog, and Docs", status: "done" as const },
-  { title: "Block Explorer", status: "done" as const },
-  { title: "Public testnet", status: "done" as const },
-  { title: "Public stagenet", status: "done" as const },
-  { title: "Mainnet launch", status: "done" as const, date: "Aug 2025" },
-  { title: "Hybrid Proof of Stake", status: "done" as const, date: "Sep 2025" },
-  { title: "GUI wallet (Linux/Windows)", status: "done" as const },
-  { title: "List to exchanges", status: "wip" as const },
-  { title: "GUI wallet for Android", status: "wip" as const },
-  { title: "Bounties website", status: "planned" as const },
-  { title: "Smart Contracts Research", status: "planned" as const },
-  { title: "Quantum Resistance", status: "planned" as const },
+const roadmap: TimelineItem[] = [
+  { title: "Begin of the project", status: "done", date: "Nov 2023" },
+  { title: "ASIC/FPGA/GPU-resistant PoW", status: "done", date: "Jul 2024" },
+  { title: "Merge Mining Network", status: "done", date: "Jul 2024" },
+  { title: "MiniDAG implementation", status: "done", date: "Jan 2025" },
+  { title: "Website, Blog, and Docs", status: "done" },
+  { title: "Block Explorer", status: "done" },
+  { title: "Public testnet", status: "done" },
+  { title: "Public stagenet", status: "done" },
+  { title: "Mainnet launch", status: "done", date: "Aug 2025" },
+  { title: "Hybrid Proof of Stake", status: "done", date: "Sep 2025" },
+  { title: "GUI wallet (Linux/Windows)", status: "done" },
+  { title: "List to exchanges", status: "current" },
+  { title: "GUI wallet for Android", status: "current" },
+  { title: "Bounties website", status: "future" },
+  { title: "Smart Contracts Research", status: "future" },
+  { title: "Quantum Resistance", status: "future" },
 ]
 
 const links = [
@@ -68,20 +68,6 @@ const links = [
   { label: "Telegram", href: "https://t.me/litedag_en" },
   { label: "GitHub", href: "https://github.com/litedag-chain" },
 ]
-
-function StatusBadge({ status }: { status: "done" | "wip" | "planned" }) {
-  const variants = {
-    done: "default",
-    wip: "secondary",
-    planned: "outline",
-  } as const
-  const labels = {
-    done: "Completed",
-    wip: "In Progress",
-    planned: "Planned",
-  }
-  return <Badge variant={variants[status]}>{labels[status]}</Badge>
-}
 
 export default function Page() {
   return (
@@ -128,24 +114,7 @@ export default function Page() {
       {/* Roadmap */}
       <section className="mx-auto max-w-3xl px-4 py-16">
         <h2 className="mb-8 text-2xl font-bold">Roadmap</h2>
-        <div className="flex flex-col gap-3">
-          {roadmap.map((item) => (
-            <div
-              key={item.title}
-              className="flex items-center justify-between rounded-lg border p-3"
-            >
-              <div className="flex items-center gap-3">
-                <StatusBadge status={item.status} />
-                <span className="text-sm font-medium">{item.title}</span>
-              </div>
-              {"date" in item && item.date && (
-                <span className="text-xs text-muted-foreground">
-                  {item.date}
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
+        <Timeline items={roadmap} />
       </section>
 
       {/* Community */}
