@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { usePathname } from "next/navigation"
 import { cn } from "@litedag/ui/lib/utils"
 
 export type SiteId = "website" | "explorer" | "wallet"
@@ -29,6 +30,8 @@ function getSiteUrl(site: (typeof SITES)[number], currentSite: SiteId): string {
 
 export function SiteNav({ currentSite }: { currentSite: SiteId }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const pathname = usePathname()
+  const onDocs = currentSite === "website" && pathname.startsWith("/docs")
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
@@ -44,7 +47,7 @@ export function SiteNav({ currentSite }: { currentSite: SiteId }) {
 
         <nav className="ml-auto hidden items-center gap-1 md:flex">
           {SITES.map((site) => {
-            const active = site.id === currentSite
+            const active = site.id === currentSite && !onDocs
             return (
               <a
                 key={site.id}
@@ -69,9 +72,17 @@ export function SiteNav({ currentSite }: { currentSite: SiteId }) {
                 ? "/docs"
                 : getSiteUrl(SITES[0]!, currentSite) + "/docs"
             }
-            className="rounded-md px-3 py-1.5 text-sm tracking-wide text-muted-foreground transition-colors hover:text-foreground"
+            className={cn(
+              "relative rounded-md px-3 py-1.5 text-sm tracking-wide transition-colors",
+              onDocs
+                ? "text-foreground"
+                : "text-muted-foreground hover:text-foreground",
+            )}
           >
             Docs
+            {onDocs && (
+              <span className="absolute inset-x-3 -bottom-[calc(0.625rem+1px)] h-px bg-primary" />
+            )}
           </a>
         </nav>
 
@@ -98,7 +109,7 @@ export function SiteNav({ currentSite }: { currentSite: SiteId }) {
       {menuOpen && (
         <nav className="flex flex-col border-t border-border/50 px-4 py-2 md:hidden">
           {SITES.map((site) => {
-            const active = site.id === currentSite
+            const active = site.id === currentSite && !onDocs
             return (
               <a
                 key={site.id}
@@ -121,7 +132,12 @@ export function SiteNav({ currentSite }: { currentSite: SiteId }) {
                 ? "/docs"
                 : getSiteUrl(SITES[0]!, currentSite) + "/docs"
             }
-            className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            className={cn(
+              "rounded-md px-3 py-2 text-sm transition-colors",
+              onDocs
+                ? "bg-secondary text-foreground"
+                : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+            )}
             onClick={() => setMenuOpen(false)}
           >
             Docs
