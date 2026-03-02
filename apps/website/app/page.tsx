@@ -1,40 +1,32 @@
 import Link from "next/link"
 import { Button } from "@litedag/ui/components/button"
-import { HeroBackground } from "@/components/hero-background"
 import { Timeline, type TimelineItem } from "@litedag/ui/components/timeline"
 import { FeatureCards } from "@/components/feature-cards"
-import { HeroSubtitle } from "@/components/hero-subtitle"
 
 const features = [
   {
-    title: "Incredibly fast",
-    description:
-      "LiteDAG produces a block every 15 seconds.",
+    title: "15s blocks",
+    description: "Fast finality with MiniDAG consensus.",
   },
   {
-    title: "Extremely scalable",
-    description:
-      "MiniDAG prunes unnecessary block info, reducing chain size and increasing throughput.",
+    title: "Merge-mined",
+    description: "Shared hashrate, lower cost security.",
   },
   {
-    title: "Multi-chain security",
-    description:
-      "Merge-mined protocols share hashrate. Higher security at lower cost.",
+    title: "ASIC-resistant",
+    description: "RandomLiteDAG keeps CPUs competitive.",
   },
   {
-    title: "Secure",
-    description:
-      "RandomLiteDAG is an ASIC-resistant mining algorithm. CPUs are the most efficient hardware.",
+    title: "No premine",
+    description: "10% dev fee on block rewards only.",
   },
   {
-    title: "Fair",
-    description:
-      "No premine. Development funded with a 10% fee on block rewards.",
+    title: "Scalable",
+    description: "MiniDAG prunes chain bloat.",
   },
   {
-    title: "Unique",
-    description:
-      "Written from the ground up in Go, one of the most original blockchain projects.",
+    title: "Original",
+    description: "Written from scratch in Go.",
   },
 ]
 
@@ -60,37 +52,32 @@ const roadmap: TimelineItem[] = [
 export default function Page() {
   return (
     <main className="min-h-svh">
-      {/* Hero */}
-      <section className="relative flex flex-col items-center justify-center gap-6 overflow-hidden px-4 py-32 text-center">
-        <HeroBackground />
-        <h1 className="relative z-10 text-4xl font-bold tracking-tight sm:text-6xl">
-          Beyond the impossible.
-          <br />
-          <HeroSubtitle />
-        </h1>
-        <p className="relative z-10 max-w-2xl text-lg text-muted-foreground">
-          The world&apos;s first MiniDAG — a novel system that simulates a
-          Directed Acyclic Graph (DAG) on a linear blockchain. Secured by
-          multi-chain Proof-of-Work via Merge-Mining.
-        </p>
-        <div className="relative z-10 flex gap-3">
-          <Button asChild>
-            <Link href="/docs/info/links#wallets">Get started</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/docs">Read the docs</Link>
-          </Button>
+      <section className="relative overflow-hidden">
+        <div className="mx-auto grid max-w-7xl items-start gap-12 px-4 py-24 lg:grid-cols-[1fr_auto] lg:gap-16 lg:py-32">
+          <div className="flex flex-col gap-5">
+            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+              LiteDAG
+            </h1>
+            <p className="max-w-sm text-[15px] leading-relaxed text-muted-foreground">
+              The first MiniDAG — a DAG simulated on a linear chain.
+              Multi-chain PoW via merge-mining.
+            </p>
+            <div className="flex gap-3">
+              <Button asChild size="sm">
+                <Link href="/docs/info/links#wallets">Get started</Link>
+              </Button>
+              <Button variant="outline" asChild size="sm">
+                <Link href="/docs">Read the docs</Link>
+              </Button>
+            </div>
+          </div>
+
+          <FeatureCards features={features} />
         </div>
       </section>
 
-      {/* Features */}
-      <section className="mx-auto max-w-5xl px-4 py-16">
-        <FeatureCards features={features} />
-      </section>
-
-      {/* Roadmap */}
-      <section className="mx-auto max-w-3xl px-4 py-16">
-        <h2 className="mb-8 text-2xl font-bold">Roadmap</h2>
+      <section className="mx-auto max-w-7xl px-4 py-16">
+        <h2 className="mb-8 text-lg font-semibold">Roadmap</h2>
         <Timeline items={roadmap} />
       </section>
     </main>

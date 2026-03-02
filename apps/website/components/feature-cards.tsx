@@ -4,16 +4,40 @@ import { useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
 import { DotMatrix } from "@litedag/ui/components/dot-matrix"
 
+const GRID = 40
+const CARD_W = GRID * 6   // 240px
+const CARD_H = GRID * 3   // 120px
+const COLS = 3
+const ROWS = 2
+const EXTEND_X = GRID * 20
+const EXTEND_Y = GRID * 10
+
 export function FeatureCards({
   features,
 }: {
   features: { title: string; description: string }[]
 }) {
   return (
-    <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">
-      {features.map((f) => (
-        <FeatureCard key={f.title} title={f.title} description={f.description} />
-      ))}
+    <div className="relative">
+      <div
+        className="pointer-events-none absolute opacity-[0.12] dark:opacity-[0.18]"
+        style={{
+          inset: `-${EXTEND_Y}px -${EXTEND_X}px`,
+          backgroundSize: `${GRID}px ${GRID}px`,
+          backgroundImage: `linear-gradient(to right, var(--color-muted-foreground) 1px, transparent 1px), linear-gradient(to bottom, var(--color-muted-foreground) 1px, transparent 1px)`,
+        }}
+      />
+      <div
+        className="relative grid"
+        style={{
+          gridTemplateColumns: `repeat(${COLS}, ${CARD_W}px)`,
+          gridTemplateRows: `repeat(${ROWS}, ${CARD_H}px)`,
+        }}
+      >
+        {features.map((f) => (
+          <FeatureCard key={f.title} title={f.title} description={f.description} />
+        ))}
+      </div>
     </div>
   )
 }
@@ -31,7 +55,7 @@ function FeatureCard({
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="group relative flex h-44 flex-col justify-between overflow-hidden bg-background p-5"
+      className="relative flex items-center justify-center overflow-hidden"
     >
       <AnimatePresence>
         {hovered && (
@@ -51,12 +75,12 @@ function FeatureCard({
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="relative z-10">
-        <h3 className="text-base font-medium tracking-tight">{title}</h3>
-      </div>
-      <p className="relative z-10 text-sm text-muted-foreground group-hover:text-foreground/70 transition-colors">
+      <span className={`relative z-10 text-sm font-medium transition-all duration-200 ${hovered ? "scale-95 opacity-0" : ""}`}>
+        {title}
+      </span>
+      <span className={`absolute inset-0 z-10 flex items-center justify-center px-3 text-center text-xs leading-snug text-foreground/80 transition-all duration-200 ${hovered ? "opacity-100" : "opacity-0 scale-105"}`}>
         {description}
-      </p>
+      </span>
     </div>
   )
 }

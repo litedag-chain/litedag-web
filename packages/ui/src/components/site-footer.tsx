@@ -32,7 +32,7 @@ const columns = [
 export function SiteFooter({ className }: { className?: string }) {
   return (
     <footer className={cn("border-t border-border/50", className)}>
-      <div className="mx-auto max-w-6xl px-4 py-12">
+      <div className="mx-auto max-w-7xl px-4 py-12">
         {/* Logo */}
         <div className="mb-8 flex items-center gap-2 font-semibold tracking-tight">
           <span className="text-primary">&#9671;</span>
