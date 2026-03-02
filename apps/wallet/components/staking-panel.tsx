@@ -22,7 +22,7 @@ import {
   UNSTAKE_FEE,
 } from "@/lib/transaction"
 import { ConfirmTxDialog, type PendingTx } from "@/components/confirm-tx-dialog"
-import { TARGET_BLOCK_TIME } from "@litedag/shared/constants"
+import { TARGET_BLOCK_TIME, COIN } from "@litedag/shared/constants"
 import type { Wallet } from "@/lib/crypto"
 import type { GetAddressResponse, GetDelegateResponse } from "@litedag/shared/rpc-types"
 
@@ -35,10 +35,11 @@ export type StakingInfo = {
   currentHeight: number
 }
 
-export function StakingPanel({ wallet, onAction, stakingInfo }: {
+export function StakingPanel({ wallet, onAction, stakingInfo, balance }: {
   wallet: Wallet
   onAction: () => void
   stakingInfo: StakingInfo | null
+  balance: number | null
 }) {
   const [delegateInput, setDelegateInput] = useState("")
   const [stakeAmount, setStakeAmount] = useState("")
@@ -90,11 +91,15 @@ export function StakingPanel({ wallet, onAction, stakingInfo }: {
     })
   }
 
+  const maxStakeAtomic = Math.max(0, (balance ?? 0) - Number(STAKE_FEE))
+  const maxUnstakeAtomic = stakingInfo?.stakedBalance ?? 0
+
   const handleStake = () => {
     setError(""); setResult("")
     const atomic = BigInt(Math.round(parseFloat(stakeAmount) * 1e9))
     if (atomic <= 0n) { setError("Stake amount must be positive"); return }
     if ((stakingInfo?.delegateId ?? 0) === 0) { setError("Set a delegate first (takes ~15s to confirm)"); return }
+    if (Number(atomic) > maxStakeAtomic) { setError(`Insufficient balance (max ${formatCoin(maxStakeAtomic)} LDG after fee)`); return }
     setPending({
       title: "Stake LDG",
       rows: [
@@ -115,6 +120,7 @@ export function StakingPanel({ wallet, onAction, stakingInfo }: {
     const atomic = BigInt(Math.round(parseFloat(unstakeAmount) * 1e9))
     if (atomic <= 0n) { setError("Unstake amount must be positive"); return }
     if ((stakingInfo?.delegateId ?? 0) === 0) { setError("No delegate set"); return }
+    if (Number(atomic) > maxUnstakeAtomic) { setError(`Exceeds staked balance (max ${formatCoin(maxUnstakeAtomic)} LDG)`); return }
     if (stakingInfo && stakingInfo.unlockHeight > stakingInfo.currentHeight) {
       const blocks = stakingInfo.unlockHeight - stakingInfo.currentHeight
       setError(`Funds locked for ${blocks} more blocks (~${Math.ceil((blocks * TARGET_BLOCK_TIME) / 60)} min)`)
@@ -196,11 +202,21 @@ export function StakingPanel({ wallet, onAction, stakingInfo }: {
           <Button onClick={handleSetDelegate} disabled={!delegateInput || parseInt(delegateInput) === stakingInfo?.delegateId} size="sm">Set</Button>
         </div>
         <div className="flex gap-2">
-          <Input placeholder="Stake amount (LDG)" type="number" value={stakeAmount} onChange={(e) => setStakeAmount(e.target.value)} className="flex-1" />
+          <div className="relative flex-1">
+            <Input placeholder="Stake amount (LDG)" type="number" value={stakeAmount} onChange={(e) => setStakeAmount(e.target.value)} className="pr-12" />
+            {maxStakeAtomic > 0 && (
+              <button onClick={() => setStakeAmount((maxStakeAtomic / COIN).toString())} className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-medium text-primary hover:text-primary/80">Max</button>
+            )}
+          </div>
           <Button onClick={handleStake} disabled={!stakeAmount} size="sm">Stake</Button>
         </div>
         <div className="flex gap-2">
-          <Input placeholder="Unstake amount (LDG)" type="number" value={unstakeAmount} onChange={(e) => setUnstakeAmount(e.target.value)} className="flex-1" />
+          <div className="relative flex-1">
+            <Input placeholder="Unstake amount (LDG)" type="number" value={unstakeAmount} onChange={(e) => setUnstakeAmount(e.target.value)} className="pr-12" />
+            {maxUnstakeAtomic > 0 && (
+              <button onClick={() => setUnstakeAmount((maxUnstakeAtomic / COIN).toString())} className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-medium text-primary hover:text-primary/80">Max</button>
+            )}
+          </div>
           <Button onClick={handleUnstake} disabled={!unstakeAmount} size="sm" variant="outline">Unstake</Button>
         </div>
         {error && <p className="text-sm text-destructive">{error}</p>}

@@ -248,6 +248,7 @@ export function Dashboard({ wallet, walletName, onLock }: {
             wallet={wallet}
             onAction={handleAction}
             stakingInfo={stakingInfo}
+            balance={balance}
           />
           <TransactionHistory txs={txs} loading={txsLoading} />
         </div>
