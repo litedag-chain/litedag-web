@@ -61,14 +61,6 @@ const roadmap: TimelineItem[] = [
   { title: "Quantum Resistance", status: "future" },
 ]
 
-const links = [
-  { label: "Discord", href: "https://discord.gg/Kx5qtH6Jm2" },
-  { label: "Twitter", href: "https://x.com/LiteDAGProtocol" },
-  { label: "Matrix", href: "https://matrix.to/#/#litedag:converser.eu" },
-  { label: "Telegram", href: "https://t.me/litedag_en" },
-  { label: "GitHub", href: "https://github.com/litedag-chain" },
-]
-
 export default function Page() {
   return (
     <main className="min-h-svh">
@@ -115,23 +107,6 @@ export default function Page() {
       <section className="mx-auto max-w-3xl px-4 py-16">
         <h2 className="mb-8 text-2xl font-bold">Roadmap</h2>
         <Timeline items={roadmap} />
-      </section>
-
-      {/* Community */}
-      <section className="mx-auto max-w-3xl px-4 py-16">
-        <h2 className="mb-4 text-2xl font-bold">Get involved</h2>
-        <p className="mb-6 text-muted-foreground">
-          Join the community and stay up-to-date with the latest news.
-        </p>
-        <div className="flex flex-wrap gap-3">
-          {links.map((l) => (
-            <Button key={l.label} variant="outline" asChild>
-              <a href={l.href} target="_blank" rel="noopener noreferrer">
-                {l.label}
-              </a>
-            </Button>
-          ))}
-        </div>
       </section>
     </main>
   )
