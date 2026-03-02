@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import {
   Card,
   CardContent,
@@ -8,24 +7,16 @@ import {
   CardTitle,
 } from "@litedag/ui/components/card"
 import { CopyText } from "@litedag/ui/components/copy-text"
-import { Badge } from "@litedag/ui/components/badge"
-import { rpc, formatCoin, explorerUrl } from "@/lib/rpc-client"
-import { COIN, TARGET_BLOCK_TIME } from "@litedag/shared/constants"
+import { formatCoin, explorerUrl } from "@/lib/rpc-client"
 import { timeAgo } from "@litedag/shared/format"
 import { ArrowUpRight, ArrowDownLeft, Pickaxe, Layers, ExternalLink } from "lucide-react"
-import type { Wallet } from "@/lib/crypto"
-import type {
-  GetTxListResponse,
-  GetTransactionResponse,
-  GetInfoResponse,
-} from "@litedag/shared/rpc-types"
 
 type TxType = "reward" | "sent" | "received" | "staking"
 
-type TxEntry = {
+export type TxEntry = {
   txid: string
   type: TxType
-  amount: number
+  amount: number // atomic units, signed (positive = in, negative = out)
   fee: number
   height: number
   time: number
@@ -38,73 +29,7 @@ const TX_TYPE_CONFIG: Record<TxType, { label: string; icon: typeof ArrowUpRight;
   staking:  { label: "Staking",  icon: Layers,        colorClass: "text-primary",   bgClass: "bg-primary/10" },
 }
 
-export type { TxEntry }
-
-export function TransactionHistory({ wallet }: { wallet: Wallet }) {
-  const [txs, setTxs] = useState<TxEntry[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    let cancelled = false
-    async function load() {
-      try {
-        const [incoming, outgoing, chainInfo] = await Promise.all([
-          rpc<GetTxListResponse>("get_tx_list", { address: wallet.address, transfer_type: "incoming", page: 0 }),
-          rpc<GetTxListResponse>("get_tx_list", { address: wallet.address, transfer_type: "outgoing", page: 0 }),
-          rpc<GetInfoResponse>("get_info", {}),
-        ])
-        const currentHeight = chainInfo.height || 0
-        const txMap = new Map<string, "incoming" | "outgoing" | "both">()
-        for (const tx of incoming.transactions ?? []) {
-          if (typeof tx === "string" && tx.length === 64) txMap.set(tx.toLowerCase(), "incoming")
-        }
-        for (const tx of outgoing.transactions ?? []) {
-          if (typeof tx === "string" && tx.length === 64) {
-            const hex = tx.toLowerCase()
-            txMap.set(hex, txMap.has(hex) ? "both" : "outgoing")
-          }
-        }
-        const txids = Array.from(txMap.keys())
-        const entries: TxEntry[] = []
-        for (let i = 0; i < txids.length; i += 10) {
-          const batch = txids.slice(i, i + 10)
-          const details = await Promise.all(batch.map((txid) => rpc<GetTransactionResponse>("get_transaction", { txid }).catch(() => null)))
-          for (let j = 0; j < batch.length; j++) {
-            const tx = details[j]; const txid = batch[j]!; const txDir = txMap.get(txid)!
-            if (!tx) continue
-
-            // Classify tx type
-            let type: TxType
-            let amountAtomic: number
-            if (tx.coinbase) {
-              type = "reward"
-              amountAtomic = (tx.outputs ?? []).reduce((sum, out) => out.recipient === wallet.address ? sum + (out.amount || 0) : sum, 0)
-            } else if (tx.sender === wallet.address && (tx.outputs ?? []).length === 0) {
-              type = "staking"
-              amountAtomic = -((tx.fee || 0))
-            } else if (tx.sender === wallet.address) {
-              type = "sent"
-              amountAtomic = -((tx.total_amount || 0) + (tx.fee || 0))
-            } else {
-              type = "received"
-              amountAtomic = (tx.outputs ?? []).reduce((sum, out) => out.recipient === wallet.address ? sum + (out.amount || 0) : sum, 0)
-            }
-
-            let timeMs = Date.now()
-            if (tx.height && tx.height < currentHeight) timeMs -= (currentHeight - tx.height) * TARGET_BLOCK_TIME * 1000
-
-            entries.push({ txid, type, amount: amountAtomic, fee: tx.fee || 0, height: tx.height || 0, time: timeMs })
-          }
-        }
-        entries.sort((a, b) => b.height - a.height)
-        if (!cancelled) setTxs(entries)
-      } catch { /* */ }
-      finally { if (!cancelled) setLoading(false) }
-    }
-    load()
-    return () => { cancelled = true }
-  }, [wallet.address])
-
+export function TransactionHistory({ txs, loading }: { txs: TxEntry[]; loading: boolean }) {
   return (
     <Card>
       <CardHeader>

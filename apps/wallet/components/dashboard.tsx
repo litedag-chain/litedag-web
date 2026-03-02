@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect, useRef, useMemo } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { Button } from "@litedag/ui/components/button"
 import { CopyText } from "@litedag/ui/components/copy-text"
 import { rpc } from "@/lib/rpc-client"
@@ -9,11 +9,36 @@ import { BalanceHero } from "@/components/balance-hero"
 import { StakingPanel, type StakingInfo } from "@/components/staking-panel"
 import { TransactionHistory, type TxEntry } from "@/components/transaction-history"
 import type { BalancePoint } from "@/components/balance-chart"
-import { COIN } from "@litedag/shared/constants"
 import { Lock } from "lucide-react"
 import type { Wallet } from "@/lib/crypto"
 import type { GetAddressResponse, GetDelegateResponse, GetTxListResponse, GetTransactionResponse, GetInfoResponse } from "@litedag/shared/rpc-types"
 import { TARGET_BLOCK_TIME } from "@litedag/shared/constants"
+
+function txsToChartData(txs: TxEntry[], currentHeight: number, currentTotal: number): BalancePoint[] {
+  if (txs.length === 0) return []
+
+  // Sort oldest first
+  const sorted = [...txs].sort((a, b) => a.height - b.height)
+
+  // Walk forward from 0, summing deltas.
+  // For "staking" type: the amount field is -(fee) but the principal stays in
+  // the wallet (moved to staked). So the total balance delta is just the fee.
+  // The tx classification already handles this — staking.amount = -(fee).
+  // For "sent": amount = -(total_amount + fee), which correctly reduces total.
+  // For "received"/"reward": amount = positive incoming.
+  let running = 0
+  const points: BalancePoint[] = []
+
+  for (const tx of sorted) {
+    running += tx.amount
+    points.push({ height: tx.height, balance: running })
+  }
+
+  // Add current balance as the final point at current height
+  points.push({ height: currentHeight, balance: currentTotal })
+
+  return points
+}
 
 export function Dashboard({ wallet, walletName, onLock }: {
   wallet: Wallet
@@ -22,7 +47,9 @@ export function Dashboard({ wallet, walletName, onLock }: {
 }) {
   const [balance, setBalance] = useState<number | null>(null)
   const [stakingInfo, setStakingInfo] = useState<StakingInfo | null>(null)
-  const [chartData, setChartData] = useState<BalancePoint[]>([])
+  const [txs, setTxs] = useState<TxEntry[]>([])
+  const [txsLoading, setTxsLoading] = useState(true)
+  const [currentHeight, setCurrentHeight] = useState(0)
   const autoLockRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -47,13 +74,13 @@ export function Dashboard({ wallet, walletName, onLock }: {
     }
   }, [lock])
 
-  const refreshAll = useCallback(async () => {
+  const refreshBalance = useCallback(async () => {
     try {
       const addrInfo = await rpc<GetAddressResponse>("get_address", { address: wallet.address })
       setBalance(addrInfo.balance)
+      setCurrentHeight(addrInfo.height || 0)
 
       const delegateId = addrInfo.delegate_id || 0
-      const currentHeight = addrInfo.height || 0
       let stakedBalance = 0, unlockHeight = 0
       if (delegateId > 0) {
         try {
@@ -62,87 +89,109 @@ export function Dashboard({ wallet, walletName, onLock }: {
           if (f) { stakedBalance = f.amount || 0; unlockHeight = f.unlock || 0 }
         } catch { /* */ }
       }
-      setStakingInfo({ delegateId, stakedBalance, unlockHeight, currentHeight })
+      setStakingInfo({ delegateId, stakedBalance, unlockHeight, currentHeight: addrInfo.height || 0 })
     } catch { /* node not reachable */ }
   }, [wallet.address])
 
-  // Poll balance + staking info
+  // Poll balance
   useEffect(() => {
-    refreshAll()
-    pollRef.current = setInterval(refreshAll, BALANCE_POLL_MS)
+    refreshBalance()
+    pollRef.current = setInterval(refreshBalance, BALANCE_POLL_MS)
     return () => { if (pollRef.current) clearInterval(pollRef.current) }
-  }, [refreshAll])
+  }, [refreshBalance])
 
-  // Derive chart data from transactions
+  // Fetch all transaction pages
   useEffect(() => {
     let cancelled = false
-    async function loadChartData() {
+    async function loadTxs() {
       try {
-        const [incoming, outgoing, chainInfo] = await Promise.all([
+        const chainInfo = await rpc<GetInfoResponse>("get_info", {})
+        const height = chainInfo.height || 0
+
+        // Fetch page 0 of both directions to get max_page
+        const [inPage0, outPage0] = await Promise.all([
           rpc<GetTxListResponse>("get_tx_list", { address: wallet.address, transfer_type: "incoming", page: 0 }),
           rpc<GetTxListResponse>("get_tx_list", { address: wallet.address, transfer_type: "outgoing", page: 0 }),
-          rpc<GetInfoResponse>("get_info", {}),
         ])
-        const currentHeight = chainInfo.height || 0
+
+        // Fetch remaining pages in parallel
+        const inPages = [inPage0]
+        const outPages = [outPage0]
+        const inRemaining = Array.from({ length: inPage0.max_page }, (_, i) => i + 1)
+        const outRemaining = Array.from({ length: outPage0.max_page }, (_, i) => i + 1)
+
+        const [inExtra, outExtra] = await Promise.all([
+          Promise.all(inRemaining.map((p) => rpc<GetTxListResponse>("get_tx_list", { address: wallet.address, transfer_type: "incoming", page: p }))),
+          Promise.all(outRemaining.map((p) => rpc<GetTxListResponse>("get_tx_list", { address: wallet.address, transfer_type: "outgoing", page: p }))),
+        ])
+        inPages.push(...inExtra)
+        outPages.push(...outExtra)
+
+        // Collect all txids
         const txMap = new Map<string, "incoming" | "outgoing" | "both">()
-        for (const tx of incoming.transactions ?? []) {
-          if (typeof tx === "string" && tx.length === 64) txMap.set(tx.toLowerCase(), "incoming")
-        }
-        for (const tx of outgoing.transactions ?? []) {
-          if (typeof tx === "string" && tx.length === 64) {
-            const hex = tx.toLowerCase()
-            txMap.set(hex, txMap.has(hex) ? "both" : "outgoing")
+        for (const page of inPages) {
+          for (const tx of page.transactions ?? []) {
+            if (typeof tx === "string" && tx.length === 64) txMap.set(tx.toLowerCase(), "incoming")
           }
         }
-        const txids = Array.from(txMap.keys())
-        type TxDetail = { txid: string; dir: "incoming" | "outgoing" | "both"; height: number; delta: number }
-        const txDetails: TxDetail[] = []
+        for (const page of outPages) {
+          for (const tx of page.transactions ?? []) {
+            if (typeof tx === "string" && tx.length === 64) {
+              const hex = tx.toLowerCase()
+              txMap.set(hex, txMap.has(hex) ? "both" : "outgoing")
+            }
+          }
+        }
 
+        // Fetch transaction details
+        const txids = Array.from(txMap.keys())
+        const entries: TxEntry[] = []
         for (let i = 0; i < txids.length; i += 10) {
           const batch = txids.slice(i, i + 10)
           const details = await Promise.all(batch.map((txid) => rpc<GetTransactionResponse>("get_transaction", { txid }).catch(() => null)))
           for (let j = 0; j < batch.length; j++) {
-            const tx = details[j]; const txid = batch[j]!; const dir = txMap.get(txid)!
+            const tx = details[j]; const txid = batch[j]!
             if (!tx) continue
-            let delta: number
+
+            let type: TxEntry["type"]
+            let amountAtomic: number
             if (tx.coinbase) {
-              delta = (tx.outputs ?? []).reduce((sum, out) => out.recipient === wallet.address ? sum + (out.amount || 0) : sum, 0)
+              type = "reward"
+              amountAtomic = (tx.outputs ?? []).reduce((sum, out) => out.recipient === wallet.address ? sum + (out.amount || 0) : sum, 0)
+            } else if (tx.sender === wallet.address && (tx.outputs ?? []).length === 0) {
+              type = "staking"
+              amountAtomic = -(tx.fee || 0)
             } else if (tx.sender === wallet.address) {
-              delta = -((tx.total_amount || 0) + (tx.fee || 0))
+              type = "sent"
+              amountAtomic = -((tx.total_amount || 0) + (tx.fee || 0))
             } else {
-              delta = (tx.outputs ?? []).reduce((sum, out) => out.recipient === wallet.address ? sum + (out.amount || 0) : sum, 0)
+              type = "received"
+              amountAtomic = (tx.outputs ?? []).reduce((sum, out) => out.recipient === wallet.address ? sum + (out.amount || 0) : sum, 0)
             }
-            txDetails.push({ txid, dir, height: tx.height || 0, delta })
+
+            let timeMs = Date.now()
+            if (tx.height && tx.height < height) timeMs -= (height - tx.height) * TARGET_BLOCK_TIME * 1000
+
+            entries.push({ txid, type, amount: amountAtomic, fee: tx.fee || 0, height: tx.height || 0, time: timeMs })
           }
         }
 
-        // Sort by height ascending
-        txDetails.sort((a, b) => a.height - b.height)
-
-        // Walk forward from inferred starting balance
-        const currentTotal = (balance ?? 0) + (stakingInfo?.stakedBalance ?? 0)
-        const totalDelta = txDetails.reduce((sum, t) => sum + t.delta, 0)
-        let runningBalance = currentTotal - totalDelta
-
-        const points: BalancePoint[] = []
-        if (txDetails.length > 0) {
-          points.push({ height: txDetails[0]!.height, balance: runningBalance })
-        }
-        for (const t of txDetails) {
-          runningBalance += t.delta
-          points.push({ height: t.height, balance: runningBalance })
-        }
-
-        if (!cancelled) setChartData(points)
-      } catch { /* */ }
+        entries.sort((a, b) => b.height - a.height)
+        if (!cancelled) { setTxs(entries); setTxsLoading(false) }
+      } catch {
+        if (!cancelled) setTxsLoading(false)
+      }
     }
-    loadChartData()
+    loadTxs()
     return () => { cancelled = true }
-  }, [wallet.address, balance, stakingInfo?.stakedBalance])
+  }, [wallet.address])
+
+  const totalBalance = (balance ?? 0) + (stakingInfo?.stakedBalance ?? 0)
+  const chartData = txsToChartData(txs, currentHeight, totalBalance)
 
   const handleAction = useCallback(() => {
-    setTimeout(refreshAll, 2000)
-  }, [refreshAll])
+    setTimeout(refreshBalance, 2000)
+  }, [refreshBalance])
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
@@ -173,7 +222,7 @@ export function Dashboard({ wallet, walletName, onLock }: {
             onAction={handleAction}
             stakingInfo={stakingInfo}
           />
-          <TransactionHistory wallet={wallet} />
+          <TransactionHistory txs={txs} loading={txsLoading} />
         </div>
       </div>
     </div>

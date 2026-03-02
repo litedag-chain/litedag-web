@@ -193,7 +193,7 @@ export function StakingPanel({ wallet, onAction, stakingInfo }: {
 
         <div className="flex gap-2">
           <Input placeholder="Delegate ID" type="number" value={delegateInput} onChange={(e) => setDelegateInput(e.target.value)} className="flex-1" />
-          <Button onClick={handleSetDelegate} disabled={!delegateInput} size="sm">Set</Button>
+          <Button onClick={handleSetDelegate} disabled={!delegateInput || parseInt(delegateInput) === stakingInfo?.delegateId} size="sm">Set</Button>
         </div>
         <div className="flex gap-2">
           <Input placeholder="Stake amount (LDG)" type="number" value={stakeAmount} onChange={(e) => setStakeAmount(e.target.value)} className="flex-1" />

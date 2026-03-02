@@ -58,7 +58,9 @@ export function BalanceChart({ data }: { data: BalancePoint[] }) {
             <ChartTooltipContent
               className="w-[160px]"
               labelFormatter={(value) => `Block #${value}`}
-              formatter={(value) => [formatCoin(Number(value) * COIN) + " LDG", "Balance"]}
+              formatter={(value) => (
+                <span className="font-mono font-medium text-foreground">{formatCoin(Number(value) * COIN)} LDG</span>
+              )}
             />
           }
         />

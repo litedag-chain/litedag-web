@@ -115,10 +115,8 @@ function ChartTooltipContent({
 }) {
   const { config } = useChart()
 
-  if (!active || !payload?.length) return null
-
   const displayLabel = React.useMemo(() => {
-    if (hideLabel) return null
+    if (hideLabel || !payload?.length) return null
     if (labelFormatter && label !== undefined) {
       return <div className={cn("font-medium", labelClassName)}>{labelFormatter(label, payload)}</div>
     }
@@ -127,7 +125,9 @@ function ChartTooltipContent({
       return <div className={cn("font-medium", labelClassName)}>{cfgLabel ?? String(label)}</div>
     }
     return null
-  }, [label, labelFormatter, hideLabel, labelClassName, config, payload])
+  }, [label, labelFormatter, payload, hideLabel, labelClassName, config])
+
+  if (!active || !payload?.length) return null
 
   return (
     <div
