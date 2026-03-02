@@ -21,16 +21,24 @@ export default function DocsIndex() {
         {sections.map((section) => {
           const docs = getDocsInSection(section.slug)
           return (
-            <Card key={section.slug}>
+            <Card
+              key={section.slug}
+              className="border border-border/50 bg-card transition-colors hover:border-border"
+            >
               <CardHeader>
-                <CardTitle>{section.title}</CardTitle>
+                <CardTitle
+                  className="text-base font-semibold text-foreground"
+                  style={{ fontFamily: "var(--font-display), sans-serif" }}
+                >
+                  {section.title}
+                </CardTitle>
                 <CardDescription>
-                  <ul className="mt-2 flex flex-col gap-1">
+                  <ul className="mt-2 flex flex-col gap-1.5">
                     {docs.map((doc) => (
                       <li key={doc.slug.join("/")}>
                         <Link
                           href={`/${doc.slug.join("/")}`}
-                          className="text-sm text-muted-foreground hover:text-foreground"
+                          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                         >
                           {doc.title}
                         </Link>

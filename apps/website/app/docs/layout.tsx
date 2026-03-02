@@ -11,18 +11,20 @@ export default function DocsLayout({
   return (
     <div className="mx-auto flex max-w-6xl gap-8 px-4 py-8">
       <nav className="hidden w-56 shrink-0 md:block">
-        <div className="sticky top-8 flex flex-col gap-6">
+        <div className="sticky top-[4.5rem] flex flex-col gap-6">
           {sections.map((section) => {
             const docs = getDocsInSection(section.slug)
             return (
               <div key={section.slug}>
-                <h3 className="mb-2 text-sm font-semibold">{section.title}</h3>
-                <ul className="flex flex-col gap-1">
+                <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-foreground">
+                  {section.title}
+                </h3>
+                <ul className="flex flex-col gap-1.5">
                   {docs.map((doc) => (
                     <li key={doc.slug.join("/")}>
                       <Link
                         href={`/${doc.slug.join("/")}`}
-                        className="text-sm text-muted-foreground hover:text-foreground"
+                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                       >
                         {doc.title}
                       </Link>
