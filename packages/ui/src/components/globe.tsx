@@ -180,6 +180,7 @@ function GlobeInner({ globeConfig, data, countries }: WorldProps) {
       .hexPolygonsData(countries.features)
       .hexPolygonResolution(3)
       .hexPolygonMargin(0.7)
+      .hexPolygonsTransitionDuration(0)
       .showAtmosphere(defaultProps.showAtmosphere)
       .atmosphereColor(defaultProps.atmosphereColor)
       .atmosphereAltitude(defaultProps.atmosphereAltitude)
@@ -187,6 +188,7 @@ function GlobeInner({ globeConfig, data, countries }: WorldProps) {
 
     globeRef.current
       .arcsData(data)
+      .arcsTransitionDuration(0)
       .arcStartLat((d) => (d as { startLat: number }).startLat * 1)
       .arcStartLng((d) => (d as { startLng: number }).startLng * 1)
       .arcEndLat((d) => (d as { endLat: number }).endLat * 1)
@@ -201,6 +203,7 @@ function GlobeInner({ globeConfig, data, countries }: WorldProps) {
 
     globeRef.current
       .pointsData(filteredPoints)
+      .pointsTransitionDuration(0)
       .pointColor((e) => (e as { color: string }).color)
       .pointsMerge(true)
       .pointAltitude(0.0)
