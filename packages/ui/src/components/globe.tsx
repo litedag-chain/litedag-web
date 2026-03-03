@@ -67,6 +67,7 @@ interface WorldProps {
   globeConfig: GlobeConfig;
   data: Position[];
   countries: { type: string; features: any[] };
+  onReady?: () => void;
 }
 
 function hexToRgb(hex: string) {
@@ -95,7 +96,7 @@ function genRandomNumbers(min: number, max: number, count: number) {
 
 let numbersOfRings = [0];
 
-function GlobeInner({ globeConfig, data, countries }: WorldProps) {
+function GlobeInner({ globeConfig, data, countries, onReady }: WorldProps) {
   const globeRef = useRef<ThreeGlobe | null>(null);
   const groupRef = useRef<any>(null);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -217,10 +218,13 @@ function GlobeInner({ globeConfig, data, countries }: WorldProps) {
       .ringRepeatPeriod(
         (defaultProps.arcTime * defaultProps.arcLength) / defaultProps.rings,
       );
+
+    onReady?.();
   }, [
     isInitialized,
     data,
     countries,
+    onReady,
     defaultProps.pointSize,
     defaultProps.showAtmosphere,
     defaultProps.atmosphereColor,

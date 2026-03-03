@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import dynamic from "next/dynamic"
 import countries from "@/data/globe.json"
 
@@ -45,14 +46,25 @@ const ARCS = [
   { order: 10, startLat: 37.57, startLng: 126.98, endLat: 37.77, endLng: -122.42, arcAlt: 0.5, color: ACCENT },
 ]
 
-export function HeroGlobe() {
+export function HeroGlobe({ onReady, delayMs = 0 }: { onReady?: () => void; delayMs?: number }) {
+  const [mounted, setMounted] = useState(delayMs === 0)
+
+  useEffect(() => {
+    if (delayMs === 0) return
+    const id = setTimeout(() => setMounted(true), delayMs)
+    return () => clearTimeout(id)
+  }, [delayMs])
+
   return (
     <div className="pointer-events-none absolute -right-[15%] top-1/2 hidden aspect-square w-[min(800px,65vw)] -translate-y-1/2 lg:block">
-      <World
-        globeConfig={GLOBE_CONFIG}
-        data={ARCS}
-        countries={countries as any}
-      />
+      {mounted && (
+        <World
+          globeConfig={GLOBE_CONFIG}
+          data={ARCS}
+          countries={countries as any}
+          onReady={onReady}
+        />
+      )}
     </div>
   )
 }
