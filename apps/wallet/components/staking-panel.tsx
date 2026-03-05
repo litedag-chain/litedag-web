@@ -198,12 +198,12 @@ export function StakingPanel({ wallet, onAction, stakingInfo, balance }: {
         )}
 
         <div className="flex gap-2">
-          <Input placeholder="Delegate ID" type="number" value={delegateInput} onChange={(e) => setDelegateInput(e.target.value)} className="flex-1" />
+          <Input placeholder="Delegate ID" type="number" min={1} value={delegateInput} onChange={(e) => setDelegateInput(e.target.value)} className="flex-1" />
           <Button onClick={handleSetDelegate} disabled={!delegateInput || parseInt(delegateInput) === stakingInfo?.delegateId} size="sm">Set</Button>
         </div>
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Input placeholder="Stake amount (LDG)" type="number" value={stakeAmount} onChange={(e) => setStakeAmount(e.target.value)} className="pr-12" />
+            <Input placeholder="Stake amount (LDG)" type="number" min={0} value={stakeAmount} onChange={(e) => setStakeAmount(e.target.value)} className="pr-12" />
             {maxStakeAtomic > 0 && (
               <button onClick={() => setStakeAmount((maxStakeAtomic / COIN).toString())} className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-medium text-primary hover:text-primary/80">Max</button>
             )}
@@ -212,7 +212,7 @@ export function StakingPanel({ wallet, onAction, stakingInfo, balance }: {
         </div>
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Input placeholder="Unstake amount (LDG)" type="number" value={unstakeAmount} onChange={(e) => setUnstakeAmount(e.target.value)} className="pr-12" />
+            <Input placeholder="Unstake amount (LDG)" type="number" min={0} value={unstakeAmount} onChange={(e) => setUnstakeAmount(e.target.value)} className="pr-12" />
             {maxUnstakeAtomic > 0 && (
               <button onClick={() => setUnstakeAmount((maxUnstakeAtomic / COIN).toString())} className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-medium text-primary hover:text-primary/80">Max</button>
             )}

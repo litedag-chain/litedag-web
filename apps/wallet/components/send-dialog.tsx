@@ -79,7 +79,7 @@ export function SendDialog({ wallet, open, onOpenChange, onSent }: {
           </DialogHeader>
           <div className="flex flex-col gap-3">
             <Input placeholder="Recipient address" value={recipient} onChange={(e) => setRecipient(e.target.value)} />
-            <Input type="number" placeholder="Amount (LDG)" value={amount} onChange={(e) => setAmount(e.target.value)} />
+            <Input type="number" min={0} placeholder="Amount (LDG)" value={amount} onChange={(e) => setAmount(e.target.value)} />
             {error && <p className="text-sm text-destructive">{error}</p>}
             {result && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
