@@ -22,6 +22,7 @@ export type TxEntry = {
   fee: number
   height: number
   time: number
+  counterparty?: string // recipient (sent) or sender (received)
 }
 
 const TX_TYPE_CONFIG: Record<TxType, { icon: typeof ArrowUpRight; colorClass: string; bgClass: string; amountClass: string }> = {
@@ -66,7 +67,14 @@ export function TransactionHistory({ txs, loading }: { txs: TxEntry[]; loading: 
                         </span>
                       )}
                     </div>
-                    <div className="mt-1 flex items-center gap-2">
+                    {tx.counterparty && (
+                      <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                        <span>{tx.type === "sent" ? "To" : "From"}</span>
+                        <CopyText text={tx.counterparty} size="xs" truncate="middle" truncateLength={20} className="text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                      <span>Tx</span>
                       <CopyText text={tx.txid} size="xs" className="text-muted-foreground" />
                     </div>
                     <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">

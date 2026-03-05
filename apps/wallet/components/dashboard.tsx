@@ -158,6 +158,7 @@ export function Dashboard({ wallet, walletName, onLock }: {
             let label: string
             let amountAtomic: number
             let displayAmount: number
+            let counterparty: string | undefined
 
             if (tx.coinbase) {
               type = "reward"
@@ -194,17 +195,20 @@ export function Dashboard({ wallet, walletName, onLock }: {
               label = "Sent"
               displayAmount = tx.total_amount + (tx.fee || 0)
               amountAtomic = -(displayAmount)
+              const recipients = outputs.filter((o) => o.recipient !== wallet.address).map((o) => o.recipient)
+              if (recipients.length === 1) counterparty = recipients[0]
             } else {
               type = "received"
               label = "Received"
               displayAmount = outputs.reduce((sum, out) => out.recipient === wallet.address ? sum + (out.amount || 0) : sum, 0)
               amountAtomic = displayAmount
+              counterparty = tx.sender
             }
 
             let timeMs = Date.now()
             if (tx.height && tx.height < height) timeMs -= (height - tx.height) * TARGET_BLOCK_TIME * 1000
 
-            entries.push({ txid, type, label, amount: amountAtomic, displayAmount, fee: tx.fee || 0, height: tx.height || 0, time: timeMs })
+            entries.push({ txid, type, label, amount: amountAtomic, displayAmount, fee: tx.fee || 0, height: tx.height || 0, time: timeMs, counterparty })
           }
         }
 
