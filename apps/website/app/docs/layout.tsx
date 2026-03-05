@@ -9,7 +9,7 @@ export default function DocsLayout({
   const sections = getDocSections()
 
   return (
-    <div className="mx-auto flex max-w-7xl gap-8 px-4 py-8">
+    <div className="mx-auto flex max-w-7xl gap-8 px-4 py-8 2xl:max-w-[85%]">
       <nav className="hidden w-56 shrink-0 md:block">
         <div className="sticky top-[4.5rem] flex flex-col gap-6">
           {sections.map((section) => {

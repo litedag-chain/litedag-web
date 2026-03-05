@@ -44,7 +44,7 @@ export default async function StakingPage() {
   const reward1y = stake > 0 ? getStakeReward(info.height, 365 * BLOCKS_PER_DAY, info.stake) / stake : 0
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 2xl:max-w-[85%]">
       <Card className="mb-6">
         <CardHeader>
           <CardTitle>Network Staking Info</CardTitle>

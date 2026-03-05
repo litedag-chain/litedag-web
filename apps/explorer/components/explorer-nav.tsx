@@ -16,7 +16,7 @@ export function ExplorerNav() {
 
   return (
     <div className="border-b border-border/50">
-      <nav className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-4">
+      <nav className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-4 2xl:max-w-[85%]">
         {tabs.map((tab) => {
           const active = tab.href === "/"
             ? pathname === "/"

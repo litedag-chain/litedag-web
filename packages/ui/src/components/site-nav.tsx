@@ -35,7 +35,7 @@ export function SiteNav({ currentSite }: { currentSite: SiteId }) {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-7xl items-center px-4 2xl:max-w-[90rem] 2xl:px-8">
+      <div className="mx-auto flex h-14 max-w-7xl items-center px-4 2xl:max-w-[85%]">
         <a
           href={getSiteUrl(SITES[0]!, currentSite)}
           className="flex items-center gap-2"

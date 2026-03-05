@@ -230,7 +230,7 @@ export function Dashboard({ wallet, walletName, onLock }: {
   }, [refreshBalance])
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 2xl:max-w-[85%]">
       <div className="mb-6 flex items-center justify-between">
         <div className="min-w-0">
           <p className="font-display text-2xl font-semibold tracking-tight">{walletName}</p>

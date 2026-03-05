@@ -45,7 +45,7 @@ export default async function Page() {
   const blocks = await getRecentBlocks(info.height, 20)
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 2xl:max-w-[85%]">
       {/* Chain info */}
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>

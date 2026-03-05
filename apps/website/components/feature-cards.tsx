@@ -86,7 +86,7 @@ function FeatureCard({ fig, title, description, Icon }: {
 
 export function FeatureCards() {
   return (
-    <section className="mx-auto max-w-7xl px-4 py-16 2xl:max-w-[90rem] 2xl:px-8">
+    <section className="mx-auto max-w-7xl px-4 py-16 2xl:max-w-[85%]">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {FEATURES.map((f) => (
           <FeatureCard key={f.title} {...f} />

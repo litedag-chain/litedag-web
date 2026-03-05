@@ -15,7 +15,7 @@ export function CreateSeed({ mnemonic, onNext }: {
   onNext: () => void
 }) {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 2xl:max-w-[85%]">
       <div className="mx-auto max-w-md">
         <Card>
           <CardHeader>

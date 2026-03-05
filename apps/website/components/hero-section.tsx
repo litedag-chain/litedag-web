@@ -17,16 +17,16 @@ export function HeroSection() {
   return (
     <section className="relative flex h-[calc(100svh-3.5rem)] items-center overflow-hidden">
       <HeroDotMatrix />
-      <div className="relative z-10 mx-auto flex w-full max-w-7xl items-center px-4 2xl:max-w-[90rem] 2xl:px-8">
-        <div className="flex max-w-lg flex-col gap-4 2xl:max-w-xl">
+      <div className="relative z-10 mx-auto flex w-full max-w-7xl items-center px-4 2xl:max-w-[85%]">
+        <div className="flex max-w-lg flex-col gap-4 2xl:max-w-2xl 2xl:gap-6">
           <h1
-            className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl 2xl:text-6xl"
+            className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl 2xl:text-7xl"
             style={{ fontFamily: "var(--font-display), sans-serif", animation: "hero-fade-up 0.5s ease-out both" }}
           >
             The lightest DAG.
           </h1>
           <p
-            className="max-w-md text-base leading-[1.65] text-muted-foreground/90 2xl:max-w-lg 2xl:text-lg"
+            className="max-w-md text-base leading-[1.65] text-muted-foreground/90 2xl:max-w-xl 2xl:text-xl"
             style={{ animation: "hero-fade-up 0.5s ease-out 0.15s both" }}
           >
             DAG benefits on a linear chain. Hybrid PoW/PoS with merge-mining.

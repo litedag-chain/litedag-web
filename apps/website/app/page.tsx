@@ -83,7 +83,7 @@ export default function Page() {
       <FeatureCards />
 
       <section className="border-y border-border/50 bg-muted/50 py-16">
-        <div className="mx-auto max-w-7xl px-4 2xl:max-w-[90rem] 2xl:px-8">
+        <div className="mx-auto max-w-7xl px-4 2xl:max-w-[85%]">
           <h2 className="mb-6 text-sm font-medium uppercase tracking-widest text-muted-foreground/50" style={{ fontFamily: "var(--font-display), sans-serif" }}>Roadmap</h2>
           <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <RoadmapPhase label="Completed" fig="PHASE 01" items={ROADMAP.done} variant="done" />
