@@ -32,7 +32,7 @@ const columns = [
 export function SiteFooter({ className }: { className?: string }) {
   return (
     <footer className={cn("border-t border-border/50", className)}>
-      <div className="mx-auto max-w-7xl px-4 py-12">
+      <div className="mx-auto max-w-7xl px-4 py-12 2xl:max-w-[90rem] 2xl:px-8">
         <div className="mb-10">
           <span className="text-lg font-bold tracking-tight" style={{ fontFamily: "var(--font-brand), monospace" }}>
             LiteDAG

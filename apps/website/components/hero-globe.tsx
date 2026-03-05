@@ -56,7 +56,7 @@ export function HeroGlobe({ onReady, delayMs = 0 }: { onReady?: () => void; dela
   }, [delayMs])
 
   return (
-    <div className="pointer-events-none absolute -right-[15%] top-1/2 hidden aspect-square w-[min(800px,65vw)] -translate-y-1/2 lg:block">
+    <div className="pointer-events-none absolute -right-[15%] top-1/2 hidden aspect-square w-[min(800px,65vw)] -translate-y-1/2 lg:block 2xl:-right-[10%] 2xl:w-[min(1000px,60vw)]">
       {mounted && (
         <World
           globeConfig={GLOBE_CONFIG}
