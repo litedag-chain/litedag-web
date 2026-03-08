@@ -12,7 +12,7 @@ import { BalanceChart, type BalancePoint } from "@/components/balance-chart"
 import { SendDialog } from "@/components/send-dialog"
 import { ReceiveDialog } from "@/components/receive-dialog"
 import { ArrowUpRight, ArrowDownLeft } from "lucide-react"
-import type { Wallet } from "@/lib/crypto"
+import { formatPublicKey, type Wallet } from "@/lib/crypto"
 
 export function BalanceHero({ balance, stakedBalance, pendingBalance, chartData, wallet, onBalanceChange }: {
   balance: number | null
@@ -76,6 +76,7 @@ export function BalanceHero({ balance, stakedBalance, pendingBalance, chartData,
       />
       <ReceiveDialog
         address={wallet.address}
+        publicKey={formatPublicKey(wallet.publicKey)}
         open={receiveOpen}
         onOpenChange={setReceiveOpen}
       />

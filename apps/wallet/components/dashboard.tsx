@@ -10,7 +10,7 @@ import { StakingPanel, type StakingInfo } from "@/components/staking-panel"
 import { TransactionHistory, type TxEntry } from "@/components/transaction-history"
 import type { BalancePoint } from "@/components/balance-chart"
 import { Lock } from "lucide-react"
-import type { Wallet } from "@/lib/crypto"
+import { formatPublicKey, type Wallet } from "@/lib/crypto"
 import {
   TX_VERSION_REGISTER_DELEGATE,
   TX_VERSION_SET_DELEGATE,
@@ -234,7 +234,14 @@ export function Dashboard({ wallet, walletName, onLock }: {
       <div className="mb-6 flex items-center justify-between">
         <div className="min-w-0">
           <p className="font-display text-2xl font-semibold tracking-tight">{walletName}</p>
-          <CopyText text={wallet.address} size="xs" truncate="none" className="mt-1 text-muted-foreground" />
+          <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+            <span className="shrink-0">Address:</span>
+            <CopyText text={wallet.address} size="xs" truncate="none" />
+          </div>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <span className="shrink-0">Public Key:</span>
+            <CopyText text={formatPublicKey(wallet.publicKey)} size="xs" truncate="middle" />
+          </div>
         </div>
         <Button variant="outline" size="sm" onClick={lock}>
           <Lock size={14} />
