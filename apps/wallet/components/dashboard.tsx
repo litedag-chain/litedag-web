@@ -202,7 +202,7 @@ export function Dashboard({ wallet, walletName, onLock }: {
               label = "Received"
               displayAmount = outputs.reduce((sum, out) => out.recipient === wallet.address ? sum + (out.amount || 0) : sum, 0)
               amountAtomic = displayAmount
-              counterparty = tx.sender
+              counterparty = tx.sender ?? undefined
             }
 
             let timeMs = Date.now()
