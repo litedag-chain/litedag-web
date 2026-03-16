@@ -6,6 +6,7 @@ import {
   restoreWallet,
   encryptWallet,
   decryptWallet,
+  decryptKeysFile,
   type Wallet,
 } from "@/lib/crypto"
 import { loadSession, saveSession, getSavedWallets } from "@/lib/session"
@@ -60,6 +61,27 @@ export default function WalletPage() {
       setView("create-password")
     } catch (e) {
       setError(e instanceof Error ? e.message : "Invalid mnemonic")
+    }
+  }
+
+  const handleImportFile = async (file: File, password: string) => {
+    setError("")
+    try {
+      const fileData = await file.arrayBuffer()
+      const w = await decryptKeysFile(fileData, password)
+      let name = file.name.replace(/\.keys$/, "")
+      let suffix = 2
+      while (localStorage.getItem(`wallet:${name}`)) {
+        name = `${file.name.replace(/\.keys$/, "")}-${suffix++}`
+      }
+      setWallet(w)
+      setWalletName(name)
+      setPassword(password)
+      const encrypted = await encryptWallet(w, password)
+      localStorage.setItem(`wallet:${name}`, encrypted)
+      openDashboard(w, name)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to import wallet file")
     }
   }
 
@@ -137,6 +159,7 @@ export default function WalletPage() {
       error={error}
       onCreate={handleCreate}
       onRestore={handleRestore}
+      onImportFile={handleImportFile}
       savedWallets={getSavedWallets()}
       onSelectWallet={(name) => { setWalletName(name); setView("unlock") }}
     />

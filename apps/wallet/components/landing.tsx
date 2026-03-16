@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Button } from "@litedag/ui/components/button"
 import {
   Card,
@@ -22,16 +22,36 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
   )
 }
 
-export function Landing({ mnemonic, setMnemonic, error, onCreate, onRestore, savedWallets, onSelectWallet }: {
+function RestoreMethodButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex-1 rounded-lg border px-3 py-2 text-sm transition-colors ${
+        active
+          ? "border-primary bg-primary/5 text-foreground"
+          : "border-border/50 text-muted-foreground hover:border-border hover:text-foreground"
+      }`}
+    >
+      {children}
+    </button>
+  )
+}
+
+export function Landing({ mnemonic, setMnemonic, error, onCreate, onRestore, onImportFile, savedWallets, onSelectWallet }: {
   mnemonic: string
   setMnemonic: (v: string) => void
   error: string
   onCreate: () => void
   onRestore: () => void
+  onImportFile: (file: File, password: string) => void
   savedWallets: string[]
   onSelectWallet: (name: string) => void
 }) {
   const [tab, setTab] = useState<"create" | "restore">("create")
+  const [restoreMethod, setRestoreMethod] = useState<"seed" | "file">("seed")
+  const [importPassword, setImportPassword] = useState("")
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 2xl:max-w-[85%]">
@@ -51,15 +71,62 @@ export function Landing({ mnemonic, setMnemonic, error, onCreate, onRestore, sav
               </div>
             ) : (
               <div className="flex flex-col gap-4">
-                <p className="text-sm text-muted-foreground">Enter your seed phrase to restore an existing wallet.</p>
-                <textarea
-                  className="min-h-24 w-full rounded-lg border border-border/50 bg-secondary px-3 py-2 text-sm focus:border-primary focus:outline-none"
-                  placeholder="Enter your seed phrase..."
-                  value={mnemonic}
-                  onChange={(e) => setMnemonic(e.target.value)}
-                />
-                {error && <p className="text-sm text-destructive">{error}</p>}
-                <Button onClick={onRestore} disabled={!mnemonic.trim()}>Restore Wallet</Button>
+                <div className="flex gap-2">
+                  <RestoreMethodButton active={restoreMethod === "seed"} onClick={() => setRestoreMethod("seed")}>
+                    Seed Phrase
+                  </RestoreMethodButton>
+                  <RestoreMethodButton active={restoreMethod === "file"} onClick={() => setRestoreMethod("file")}>
+                    Wallet File
+                  </RestoreMethodButton>
+                </div>
+
+                {restoreMethod === "seed" ? (
+                  <>
+                    <p className="text-sm text-muted-foreground">Enter your seed phrase to restore your wallet.</p>
+                    <textarea
+                      className="min-h-24 w-full rounded-lg border border-border/50 bg-secondary px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                      placeholder="Enter your seed phrase..."
+                      value={mnemonic}
+                      onChange={(e) => setMnemonic(e.target.value)}
+                    />
+                    {error && <p className="text-sm text-destructive">{error}</p>}
+                    <Button onClick={onRestore} disabled={!mnemonic.trim()}>Restore Wallet</Button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-muted-foreground">
+                      Import a <code className="rounded bg-muted px-1 py-0.5 text-xs">.keys</code> file from the desktop or old web wallet.
+                    </p>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".keys"
+                      className="hidden"
+                      onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
+                    />
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start font-normal"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      {selectedFile ? selectedFile.name : "Select .keys file..."}
+                    </Button>
+                    <input
+                      type="password"
+                      className="w-full rounded-lg border border-border/50 bg-secondary px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                      placeholder="Wallet password"
+                      value={importPassword}
+                      onChange={(e) => setImportPassword(e.target.value)}
+                    />
+                    {error && <p className="text-sm text-destructive">{error}</p>}
+                    <Button
+                      onClick={() => { if (selectedFile) onImportFile(selectedFile, importPassword) }}
+                      disabled={!selectedFile || !importPassword}
+                    >
+                      Import &amp; Login
+                    </Button>
+                  </>
+                )}
               </div>
             )}
           </CardContent>

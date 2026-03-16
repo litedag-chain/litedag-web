@@ -119,13 +119,13 @@ export function restoreWallet(mnemonic: string): Wallet {
 }
 
 // Wallet encryption/decryption via WebCrypto (PBKDF2 + AES-GCM)
-async function deriveKey(password: string, salt: Uint8Array) {
+async function deriveKey(password: string, salt: Uint8Array, iterations = 100000) {
   const enc = new TextEncoder()
   const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, [
     "deriveKey",
   ])
   return crypto.subtle.deriveKey(
-    { name: "PBKDF2", salt: salt as BufferSource, iterations: 100000, hash: "SHA-256" },
+    { name: "PBKDF2", salt: salt as BufferSource, iterations, hash: "SHA-256" },
     keyMaterial,
     { name: "AES-GCM", length: 256 },
     false,
@@ -169,5 +169,35 @@ export async function decryptWallet(encrypted: string, password: string): Promis
     privateKey: new Uint8Array(parsed.privateKey),
     publicKey: new Uint8Array(parsed.publicKey),
     address: parsed.address,
+  }
+}
+
+// Decrypt a raw .keys file (binary: salt[16] + iv[12] + AES-256-GCM ciphertext)
+// Tries 600k iterations first (new wallets), falls back to 100k (old wallets)
+// Entirely client-side via WebCrypto — file never leaves the browser
+export async function decryptKeysFile(fileData: ArrayBuffer, password: string): Promise<Wallet> {
+  const bytes = new Uint8Array(fileData)
+  const salt = bytes.slice(0, 16)
+  const iv = bytes.slice(16, 28)
+  const encrypted = bytes.slice(28)
+
+  const tryDecrypt = async (iterations: number): Promise<Wallet> => {
+    const key = await deriveKey(password, salt, iterations)
+    const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, encrypted)
+    const parsed = JSON.parse(new TextDecoder().decode(decrypted))
+    if (!parsed.mnemonic || typeof parsed.mnemonic !== "string") {
+      throw new Error("Invalid wallet file format")
+    }
+    return restoreWallet(parsed.mnemonic)
+  }
+
+  try {
+    return await tryDecrypt(600000)
+  } catch {
+    try {
+      return await tryDecrypt(100000)
+    } catch {
+      throw new Error("Wrong password or corrupted wallet file")
+    }
   }
 }
