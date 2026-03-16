@@ -172,11 +172,43 @@ export async function decryptWallet(encrypted: string, password: string): Promis
   }
 }
 
-// Decrypt a raw .keys file (binary: salt[16] + iv[12] + AES-256-GCM ciphertext)
-// Tries 600k iterations first (new wallets), falls back to 100k (old wallets)
-// Entirely client-side via WebCrypto — file never leaves the browser
-export async function decryptKeysFile(fileData: ArrayBuffer, password: string): Promise<Wallet> {
-  const bytes = new Uint8Array(fileData)
+// CLI wallet .keys format: salt[16] + time[4 LE] + mem[4 LE] + nonce[12] + AES-256-GCM(json)
+// KDF: Argon2id (time iterations, mem KiB, parallelism=1, 32-byte key)
+// Plaintext JSON: { NetworkID, Mnemonic, PrivateKey, Address, PubKey }
+async function decryptCliKeysFile(bytes: Uint8Array, password: string): Promise<Wallet> {
+  const { argon2id } = await import("hash-wasm")
+  const salt = bytes.slice(0, 16)
+  const view = new DataView(bytes.buffer, bytes.byteOffset)
+  const time = view.getUint32(16, true)
+  const mem = view.getUint32(20, true)
+  const nonceAndCiphertext = bytes.slice(24)
+  const nonce = nonceAndCiphertext.slice(0, 12)
+  const ciphertext = nonceAndCiphertext.slice(12)
+
+  const keyHex = await argon2id({
+    password: new TextEncoder().encode(password),
+    salt,
+    iterations: time,
+    memorySize: mem,
+    parallelism: 1,
+    hashLength: 32,
+    outputType: "hex",
+  })
+  const keyBytes = new Uint8Array(keyHex.match(/.{2}/g)!.map((b) => parseInt(b, 16)))
+
+  const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["decrypt"])
+  const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv: nonce }, cryptoKey, ciphertext)
+  const parsed = JSON.parse(new TextDecoder().decode(decrypted))
+  if (!parsed.Mnemonic || typeof parsed.Mnemonic !== "string") {
+    throw new Error("Invalid CLI wallet file")
+  }
+  return restoreWallet(parsed.Mnemonic)
+}
+
+// Web wallet .keys format: salt[16] + iv[12] + AES-256-GCM(json)
+// KDF: PBKDF2-SHA256 (600k or 100k iterations)
+// Plaintext JSON: { mnemonic, address, publicKey, privateKey }
+async function decryptWebKeysFile(bytes: Uint8Array, password: string): Promise<Wallet> {
   const salt = bytes.slice(0, 16)
   const iv = bytes.slice(16, 28)
   const encrypted = bytes.slice(28)
@@ -186,7 +218,7 @@ export async function decryptKeysFile(fileData: ArrayBuffer, password: string): 
     const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, encrypted)
     const parsed = JSON.parse(new TextDecoder().decode(decrypted))
     if (!parsed.mnemonic || typeof parsed.mnemonic !== "string") {
-      throw new Error("Invalid wallet file format")
+      throw new Error("Invalid web wallet file")
     }
     return restoreWallet(parsed.mnemonic)
   }
@@ -194,10 +226,42 @@ export async function decryptKeysFile(fileData: ArrayBuffer, password: string): 
   try {
     return await tryDecrypt(600000)
   } catch {
+    return await tryDecrypt(100000)
+  }
+}
+
+// Auto-detect CLI vs web wallet format and decrypt.
+// CLI format has Argon2 time/mem params at bytes 16-24 (both > 0, reasonable values).
+// Web format has the GCM IV starting at byte 16 (random bytes, not valid Argon2 params).
+// Entirely client-side — file never leaves the browser.
+export async function decryptKeysFile(fileData: ArrayBuffer, password: string): Promise<Wallet> {
+  const bytes = new Uint8Array(fileData)
+  if (bytes.length < 29) throw new Error("File too small to be a wallet")
+
+  const view = new DataView(bytes.buffer, bytes.byteOffset)
+  const time = view.getUint32(16, true)
+  const mem = view.getUint32(20, true)
+  const isCli = time > 0 && time <= 65536 && mem > 0 && mem <= 16777216
+
+  if (isCli) {
     try {
-      return await tryDecrypt(100000)
+      return await decryptCliKeysFile(bytes, password)
     } catch {
-      throw new Error("Wrong password or corrupted wallet file")
+      // Misdetected — fall through to web format
     }
+  }
+
+  try {
+    return await decryptWebKeysFile(bytes, password)
+  } catch {
+    if (!isCli) {
+      // Haven't tried CLI yet — random IV bytes happened to not look like Argon2 params
+      try {
+        return await decryptCliKeysFile(bytes, password)
+      } catch {
+        // Both failed
+      }
+    }
+    throw new Error("Wrong password or corrupted wallet file")
   }
 }
