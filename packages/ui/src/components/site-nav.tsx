@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { usePathname } from "next/navigation"
 import { cn } from "@litedag/ui/lib/utils"
+import { Logo } from "@litedag/ui/components/logo"
 
 export type SiteId = "website" | "explorer" | "wallet"
 
@@ -40,6 +41,7 @@ export function SiteNav({ currentSite }: { currentSite: SiteId }) {
           href={getSiteUrl(SITES[0]!, currentSite)}
           className="flex items-center gap-2"
         >
+          <Logo size={28} className="text-primary" />
           <span className="text-lg font-bold tracking-tight text-foreground" style={{ fontFamily: "var(--font-brand), monospace" }}>
             LiteDAG
           </span>
