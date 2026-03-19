@@ -29,7 +29,7 @@ set_delegate delegate1
 
 #### Step 2: Stake Your LDG
 
-Once your delegate is set, you can lock your funds to begin staking. The minimum stake is **100 LDG**.
+Once your delegate is set, you can lock your funds to begin staking. The minimum stake is **10,000 LDG**.
 
 **Command:**
 ```bash

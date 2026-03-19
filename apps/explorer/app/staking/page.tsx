@@ -13,17 +13,20 @@ export const metadata = { title: "Staking Calculator" }
 const BLOCKS_PER_DAY = 5760 // 86400 / 15
 const STAKER_PERCENT = 0.4
 
-// Simplified reward calculation matching Go explorer's GetStakeReward
+// Simplified reward calculation matching Go node's Reward()
 // Block reward reduces 10% every season (91 days = 524160 blocks)
+// Tail emission: 1 LDG/block minimum
 function getBlockReward(height: number): number {
   const SEASON_BLOCKS = 91 * BLOCKS_PER_DAY
-  const INITIAL_REWARD = 175 * COIN
+  const INITIAL_REWARD = 20 * COIN
+  const TAIL_EMISSION = 1 * COIN
 
-  // First 2 seasons (6 months) = no reduction
+  // First 2 seasons (6 months) = full reward, reductions start at season 2
   if (height < 2 * SEASON_BLOCKS) return INITIAL_REWARD
 
   const seasonsElapsed = Math.floor(height / SEASON_BLOCKS) - 1
-  return Math.floor(INITIAL_REWARD * Math.pow(0.9, seasonsElapsed))
+  const reward = Math.floor(INITIAL_REWARD * Math.pow(0.9, seasonsElapsed))
+  return Math.max(reward, TAIL_EMISSION)
 }
 
 function getStakeReward(startHeight: number, blockCount: number, totalStake: number): number {
