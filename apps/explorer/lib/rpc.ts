@@ -61,6 +61,10 @@ export function getDelegate(delegateAddress: string) {
   return rpc<GetDelegateResponse>("get_delegate", { delegate_address: delegateAddress })
 }
 
+export function getDelegates() {
+  return rpc<GetDelegateResponse[]>("get_delegates")
+}
+
 export function getRichList() {
   return rpc<{ list: { address: string; balance: number }[] }>("get_rich_list")
 }

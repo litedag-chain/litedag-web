@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic"
 
 import Link from "next/link"
-import { getInfo, getDelegate, COIN } from "@/lib/rpc"
+import { getInfo, getDelegates, COIN } from "@/lib/rpc"
 import {
   Card,
   CardContent,
@@ -23,15 +23,7 @@ export default async function DelegatesPage() {
   const info = await getInfo()
   const totalStake = info.stake
 
-  const delegates = []
-  for (let i = 1; i <= 50; i++) {
-    try {
-      const d = await getDelegate(`delegate${i}`)
-      delegates.push(d)
-    } catch {
-      break
-    }
-  }
+  const delegates = await getDelegates()
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 2xl:max-w-[85%]">
