@@ -51,14 +51,10 @@ export function StakingPanel({ wallet, onAction, stakingInfo, balance }: {
 
   useEffect(() => {
     (async () => {
-      const found: DelegateEntry[] = []
-      for (let i = 1; i <= 50; i++) {
-        try {
-          const d = await rpc<GetDelegateResponse>("get_delegate", { delegate_address: `delegate${i}` })
-          found.push({ id: d.id, name: d.name, total_amount: d.total_amount })
-        } catch { break }
-      }
-      setDelegates(found)
+      try {
+        const all = await rpc<GetDelegateResponse[]>("get_delegates", {})
+        setDelegates(all.map(d => ({ id: d.id, name: d.name, total_amount: d.total_amount })))
+      } catch { /* node may not support get_delegates yet */ }
     })()
   }, [])
 
