@@ -90,3 +90,8 @@ Your address starts with `v` and looks like: `vhcunjkejkshqf4jjx9gfnu52162mvoa9e
 | 6310 | P2P | Node-to-node communication |
 | 6311 | RPC | JSON-RPC API |
 | 6312 | Stratum | Mining connections |
+
+#### Next Steps
+
+- [Staking Guide](/docs/guides/staking) — Earn 40% of block rewards by staking your LDG
+- [Running as a Service](/docs/guides/systemd) — Run the node and staker with systemd

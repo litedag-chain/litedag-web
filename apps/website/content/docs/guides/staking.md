@@ -86,3 +86,8 @@ unstake 10000
 | `unstake <amount>` | Withdraw after lock expires |
 
 Always keep a small amount of LDG unlocked in your wallet to pay for transaction fees.
+
+#### See Also
+
+- [Mining Guide](/docs/guides/mining) — Start mining LDG with CPU
+- [Running as a Service](/docs/guides/systemd) — Run the staker with systemd
