@@ -68,6 +68,9 @@ export default async function BlockPage({ params }: Props) {
             }
           />
           <Row label="Transactions" value={block.block.transactions.length.toString()} />
+          {block.block.header.side_blocks && block.block.header.side_blocks.length > 0 && (
+            <Row label="Side Blocks (Uncles)" value={block.block.header.side_blocks.length.toString()} />
+          )}
           <Row label="Total Reward" value={`${formatCoin(block.total_reward)} LDG`} />
           <Row label="Miner Reward" value={`${formatCoin(block.miner_reward)} LDG`} />
           <Row label="Staker Reward" value={`${formatCoin(block.staker_reward)} LDG`} />
@@ -108,16 +111,19 @@ export default async function BlockPage({ params }: Props) {
           </CardHeader>
           <CardContent>
             <ul className="flex flex-col gap-2">
-              {block.block.transactions.map((txid) => (
-                <li key={txid}>
-                  <Link
-                    href={`/tx/${txid}`}
-                    className="font-mono text-sm text-primary hover:underline"
-                  >
-                    {txid}
-                  </Link>
-                </li>
-              ))}
+              {block.block.transactions.map((txid) => {
+                const hex = typeof txid === "string" ? txid : (txid as number[]).map((b: number) => b.toString(16).padStart(2, "0")).join("")
+                return (
+                  <li key={hex}>
+                    <Link
+                      href={`/tx/${hex}`}
+                      className="font-mono text-sm text-primary hover:underline"
+                    >
+                      {hex}
+                    </Link>
+                  </li>
+                )
+              })}
             </ul>
           </CardContent>
         </Card>
