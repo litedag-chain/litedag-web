@@ -3,57 +3,86 @@ title: Staking
 weight: 2
 ---
 
-### Brief Guide: Staking LDG with the CLI Wallet
+### Staking LDG
 
-This guide will walk you through the two steps required to stake your LDG and start earning rewards.
+Stake your LDG to earn 40% of block rewards. Staking rewards auto-compound into your delegate's staked balance.
+
+#### How Rewards Work
+
+Each block distributes 20 LDG:
+
+| Recipient | Share | Amount |
+|-----------|-------|--------|
+| Miner | 50% | 10 LDG |
+| Staker | 40% | 8 LDG |
+| Treasury | 10% | 2 LDG |
+
+If no staker signs a block, the 40% staker share is **burned**. Running a staker keeps the network secure and earns you rewards.
 
 #### Prerequisites
-- Your CLI wallet is installed, synchronized, and contains a balance of LDG.
-- You have unlocked your wallet using the `unlock` command.
 
-#### Step 1: Set a Delegate
+- CLI wallet installed and synced (a local node must be running)
+- Wallet contains at least **11,000 LDG** (10,000 min stake + 1,000 delegate registration burn + fees)
 
-Before you can stake, you must choose a delegate (similar to a validator or pool). A list of active and reliable delegates is available on the official block explorer:
+#### Step 1: Register a Delegate
 
-**Delegate List:** [https://explorer.litedag.com/delegates](https://explorer.litedag.com/delegates)
+To stake, you first need a delegate (validator). You can either create your own or use an existing one.
 
-Choose a delegate and note its address (e.g., `delegate1`). In your CLI wallet, use the `set_delegate` command.
-
-**Command:**
+**To create your own delegate:**
 ```bash
-set_delegate delegate1
+register_delegate <id> <name>
 ```
-*(Replace `delegate1` with your chosen delegate's actual address)*
+Example: `register_delegate 2 mypool` — this burns 1,000 LDG.
 
-**What this does:** This command assigns your wallet to your chosen delegate. You do not need to do this again unless you wish to change delegates.
+**To use an existing delegate**, browse the list at [explorer.litedag.com/delegates](https://explorer.litedag.com/delegates) and skip to Step 2.
 
-#### Step 2: Stake Your LDG
+#### Step 2: Set Your Delegate
 
-Once your delegate is set, you can lock your funds to begin staking. The minimum stake is **10,000 LDG**.
+Assign your wallet to a delegate:
 
-**Command:**
 ```bash
-stake 500
+set_delegate <delegate_id>
 ```
-*(This example stakes 500 LDG)*
+Example: `set_delegate 1` — assigns your wallet to delegate 1 (litedag).
 
-**Important Information:**
-- Staking **locks your delegated funds for 2 months**.
-- If you stake additional amounts later, **all your staked funds** will be re-locked for a new 2-month period.
+#### Step 3: Stake
 
-#### Unstaking Your Funds
+Lock your funds to begin earning rewards. Minimum stake is **10,000 LDG**.
 
-After the 2-month locking period has passed, you can withdraw your LDG using the `unstake` command.
-
-**Command:**
 ```bash
-unstake 500
+stake 10000
 ```
-*(This example unstakes 500 LDG)*
 
-**Summary of Commands:**
-1. `set_delegate <delegate_address>`
-2. `stake <amount>`
-3. `unstake <amount>` (after 2 months)
+**Important:**
+- Staking locks your funds for **2 months**.
+- Additional stakes reset the lock period.
+- Rewards auto-compound — your staked balance grows automatically.
 
-Always ensure your wallet is unlocked and you have a small amount of LDG left to pay for the transaction fees.
+#### Step 4: Run the Staker (Delegate Owners Only)
+
+If you registered your own delegate, you need to run the staker process to sign blocks:
+
+```bash
+./litedag-wallet-cli --open-wallet <name> --wallet-password <pass> --start-staking delegate<id> --non-interactive
+```
+
+This must run continuously. Use systemd or a tmux session to keep it alive.
+
+#### Unstaking
+
+After the 2-month lock period:
+
+```bash
+unstake 10000
+```
+
+#### Quick Reference
+
+| Command | What it does |
+|---------|-------------|
+| `register_delegate <id> <name>` | Create a new delegate (burns 1,000 LDG) |
+| `set_delegate <id>` | Assign your wallet to a delegate |
+| `stake <amount>` | Lock LDG for staking (min 10,000) |
+| `unstake <amount>` | Withdraw after lock expires |
+
+Always keep a small amount of LDG unlocked in your wallet to pay for transaction fees.
