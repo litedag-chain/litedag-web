@@ -49,25 +49,28 @@ export function SendDialog({ wallet, open, onOpenChange, onSent }: {
       if (!v.valid) { setError(v.error_message || "Invalid address"); return }
       const atomicAmount = BigInt(Math.round(parseFloat(amount) * 1e9))
       assert(atomicAmount > 0n, "Amount must be positive")
-      let parsedPaymentId: number | undefined
+      
+      // Parse paymentId from address automatically
+      const parsedAddress = parseAddressToBytes(recipient)
+      const effectivePaymentId = paymentId.trim() !== "" ? Number(paymentId) : parsedAddress.paymentId
       if (paymentId.trim() !== "") {
-        parsedPaymentId = Number(paymentId)
-        assert(Number.isInteger(parsedPaymentId) && parsedPaymentId >= 0, "Payment ID must be a non-negative integer")
+        assert(Number.isInteger(Number(paymentId)) && Number(paymentId) >= 0, "Payment ID must be a non-negative integer")
       }
-      const fee = estimateTransferFee([{ recipient, amount: atomicAmount, paymentId: parsedPaymentId }])
+      
+      const fee = estimateTransferFee([{ recipient, amount: atomicAmount, paymentId: effectivePaymentId }])
       const rows = [
         { label: "To", value: recipient },
         { label: "Amount", value: `${parseFloat(amount).toLocaleString()} LDG` },
       ]
-      if (parsedPaymentId !== undefined) {
-        rows.push({ label: "Payment ID", value: String(parsedPaymentId) })
+      if (effectivePaymentId !== 0) {
+        rows.push({ label: "Payment ID", value: String(effectivePaymentId) })
       }
       setPending({
         title: "Send LDG",
         rows,
         fee,
         execute: async () => {
-          const { hex, hash } = await createAndSignTransfer(wallet, [{ recipient, amount: atomicAmount, paymentId: parsedPaymentId }])
+          const { hex, hash } = await createAndSignTransfer(wallet, [{ recipient, amount: atomicAmount, paymentId: effectivePaymentId }])
           await submitTransaction(hex)
           return hash
         },
