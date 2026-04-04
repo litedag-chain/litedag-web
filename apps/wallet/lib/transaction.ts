@@ -35,7 +35,7 @@ function encodeVarint(n: bigint | number): Uint8Array {
   return new Uint8Array(bytes)
 }
 
-function parseAddressToBytes(addressStr: string): Uint8Array {
+function parseAddressToBytes(addressStr: string): { address: Uint8Array; paymentId: number } {
   const trimmed = addressStr.trim()
   assert(trimmed.length >= 5 && trimmed.length <= 100, `Invalid address length: ${trimmed.length}`)
   assert(trimmed.startsWith("v"), "Address must start with 'v'")
@@ -58,8 +58,18 @@ function parseAddressToBytes(addressStr: string): Uint8Array {
   }
   while (bytes.length < 24) bytes.unshift(0)
 
+  // Extract paymentId if present (data length > 24)
+  let paymentId = 0
+  if (bytes.length > 24) {
+    const paymentIdBytes = bytes.slice(24)
+    // Convert little-endian bytes to uint64
+    for (let i = 0; i < Math.min(8, paymentIdBytes.length); i++) {
+      paymentId |= paymentIdBytes[i] << (i * 8)
+    }
+  }
+
   // Skip first 2 bytes (checksum), return 22-byte address
-  return new Uint8Array(bytes.slice(2, 24))
+  return { address: new Uint8Array(bytes.slice(2, 24)), paymentId }
 }
 
 function assert(condition: boolean, msg: string): asserts condition {
@@ -86,7 +96,9 @@ function bytesToHex(bytes: Uint8Array): string {
 // --- Serialization ---
 
 function serializeOutput(recipient: string, paymentId: number, amount: bigint): Uint8Array {
-  return concatBytes(parseAddressToBytes(recipient), encodeVarint(paymentId), encodeVarint(amount))
+  const parsed = parseAddressToBytes(recipient)
+  const effectivePaymentId = paymentId !== 0 ? paymentId : parsed.paymentId
+  return concatBytes(parsed.address, encodeVarint(effectivePaymentId), encodeVarint(amount))
 }
 
 function serializeTransferData(outputs: { recipient: string; paymentId: number; amount: bigint }[]): Uint8Array {
@@ -206,7 +218,11 @@ export async function createAndSignTransfer(
 ): Promise<{ hex: string; hash: string }> {
   const nonce = await getNonce(wallet.address)
   const data = serializeTransferData(
-    outputs.map((o) => ({ recipient: o.recipient, paymentId: o.paymentId ?? 0, amount: o.amount }))
+    outputs.map((o) => {
+      const parsed = parseAddressToBytes(o.recipient)
+      const effectivePaymentId = o.paymentId ?? parsed.paymentId
+      return { recipient: o.recipient, paymentId: effectivePaymentId, amount: o.amount }
+    })
   )
   const tx: Tx = {
     version: TX_VERSION_TRANSFER,
@@ -286,7 +302,11 @@ export async function submitTransaction(hex: string): Promise<{ result: boolean 
 
 export function estimateTransferFee(outputs: TransferOutput[]): bigint {
   const data = serializeTransferData(
-    outputs.map((o) => ({ recipient: o.recipient, paymentId: o.paymentId ?? 0, amount: o.amount }))
+    outputs.map((o) => {
+      const parsed = parseAddressToBytes(o.recipient)
+      const effectivePaymentId = o.paymentId ?? parsed.paymentId
+      return { recipient: o.recipient, paymentId: effectivePaymentId, amount: o.amount }
+    })
   )
   const tx: Tx = {
     version: TX_VERSION_TRANSFER,

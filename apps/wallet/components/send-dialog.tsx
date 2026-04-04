@@ -32,13 +32,14 @@ export function SendDialog({ wallet, open, onOpenChange, onSent }: {
 }) {
   const [recipient, setRecipient] = useState("")
   const [amount, setAmount] = useState("")
+  const [paymentId, setPaymentId] = useState("")
   const [result, setResult] = useState("")
   const [error, setError] = useState("")
   const [pending, setPending] = useState<PendingTx | null>(null)
   const [validating, setValidating] = useState(false)
 
   const reset = () => {
-    setRecipient(""); setAmount(""); setResult(""); setError("")
+    setRecipient(""); setAmount(""); setPaymentId(""); setResult(""); setError("")
   }
 
   const handlePrepare = async () => {
@@ -48,16 +49,28 @@ export function SendDialog({ wallet, open, onOpenChange, onSent }: {
       if (!v.valid) { setError(v.error_message || "Invalid address"); return }
       const atomicAmount = BigInt(Math.round(parseFloat(amount) * 1e9))
       assert(atomicAmount > 0n, "Amount must be positive")
-      const fee = estimateTransferFee([{ recipient, amount: atomicAmount }])
+      
+      // Parse paymentId from address automatically
+      const parsedAddress = parseAddressToBytes(recipient)
+      const effectivePaymentId = paymentId.trim() !== "" ? Number(paymentId) : parsedAddress.paymentId
+      if (paymentId.trim() !== "") {
+        assert(Number.isInteger(Number(paymentId)) && Number(paymentId) >= 0, "Payment ID must be a non-negative integer")
+      }
+      
+      const fee = estimateTransferFee([{ recipient, amount: atomicAmount, paymentId: effectivePaymentId }])
+      const rows = [
+        { label: "To", value: recipient },
+        { label: "Amount", value: `${parseFloat(amount).toLocaleString()} LDG` },
+      ]
+      if (effectivePaymentId !== 0) {
+        rows.push({ label: "Payment ID", value: String(effectivePaymentId) })
+      }
       setPending({
         title: "Send LDG",
-        rows: [
-          { label: "To", value: recipient },
-          { label: "Amount", value: `${parseFloat(amount).toLocaleString()} LDG` },
-        ],
+        rows,
         fee,
         execute: async () => {
-          const { hex, hash } = await createAndSignTransfer(wallet, [{ recipient, amount: atomicAmount }])
+          const { hex, hash } = await createAndSignTransfer(wallet, [{ recipient, amount: atomicAmount, paymentId: effectivePaymentId }])
           await submitTransaction(hex)
           return hash
         },
@@ -80,6 +93,7 @@ export function SendDialog({ wallet, open, onOpenChange, onSent }: {
           <div className="flex flex-col gap-3">
             <Input placeholder="Recipient address" value={recipient} onChange={(e) => setRecipient(e.target.value)} />
             <Input type="number" min={0} placeholder="Amount (LDG)" value={amount} onChange={(e) => setAmount(e.target.value)} />
+            <Input type="number" min={0} step={1} placeholder="Payment ID (optional)" value={paymentId} onChange={(e) => setPaymentId(e.target.value)} />
             {error && <p className="text-sm text-destructive">{error}</p>}
             {result && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -99,7 +113,7 @@ export function SendDialog({ wallet, open, onOpenChange, onSent }: {
         onSuccess={(hash) => {
           setPending(null)
           setResult(hash)
-          setRecipient(""); setAmount("")
+          setRecipient(""); setAmount(""); setPaymentId("")
           onSent()
           onOpenChange(false)
         }}
