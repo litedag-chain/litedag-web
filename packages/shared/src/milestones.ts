@@ -6,6 +6,8 @@ export type Milestone = {
   target?: string // when we aim to ship
   major?: boolean // true = shows on roadmap, omitted = changelog only
   apps?: ("wallet" | "explorer" | "website")[] // which apps this is relevant to
+  credit?: { name: string; url?: string }  // community contributor
+  pr?: string // PR URL
 }
 
 export const milestones: Milestone[] = [
@@ -103,6 +105,15 @@ export const milestones: Milestone[] = [
     status: "done",
     apps: ["wallet"],
     description: "Fixed payment_id handling — CEX deposits are now properly identifiable. Verified against Go implementation with 40 cross-language test vectors.",
+  },
+  {
+    title: "Manual Payment ID in send dialog",
+    date: "2026-04",
+    status: "done",
+    apps: ["wallet"],
+    description: "Optional Payment ID field in the send form. Manual value overrides the address-embedded payment_id.",
+    credit: { name: "cexius", url: "https://github.com/cexius" },
+    pr: "https://github.com/litedag-chain/litedag-web/pull/1",
   },
 
   // --- Current ---
