@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@litedag/shared": "workspace:^",
     "@litedag/ui": "workspace:*",
     "@shikijs/rehype": "^4.0.1",
     "@types/mdx": "^2.0.13",

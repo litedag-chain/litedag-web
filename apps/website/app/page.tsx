@@ -1,30 +1,26 @@
+import Link from "next/link"
 import { FeatureCards } from "@/components/feature-cards"
 import { HeroSection } from "@/components/hero-section"
+import { milestones } from "@litedag/shared/milestones"
+
+function formatDate(date?: string): string | undefined {
+  if (!date) return undefined
+  const [y, m] = date.split("-")
+  if (!m) return y
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+  return `${months[parseInt(m, 10) - 1]} ${y}`
+}
 
 const ROADMAP = {
-  done: [
-    { title: "Begin of the project", date: "Nov 2023" },
-    { title: "ASIC/FPGA/GPU-resistant PoW", date: "Jul 2024" },
-    { title: "Merge Mining Network", date: "Jul 2024" },
-    { title: "MiniDAG implementation", date: "Jan 2025" },
-    { title: "Website, Blog, and Docs" },
-    { title: "Block Explorer" },
-    { title: "Public testnet" },
-    { title: "Public stagenet" },
-    { title: "Mainnet launch", date: "Aug 2025" },
-    { title: "Hybrid Proof of Stake", date: "Sep 2025" },
-    { title: "GUI wallet (Linux/Windows)" },
-  ],
-  current: [
-    { title: "List to exchanges" },
-    { title: "GUI wallet for Android" },
-  ],
-  future: [
-    { title: "Bounties website" },
-    { title: "Smart Contracts Research" },
-    { title: "Quantum Resistance" },
-  ],
-} as const
+  done: milestones.filter((m) => m.status === "done" && m.major).map((m) => ({ title: m.title, date: formatDate(m.date) })),
+  current: milestones.filter((m) => m.status === "current" && m.major).map((m) => ({ title: m.title, date: formatDate(m.target) })),
+  future: milestones.filter((m) => m.status === "future" && m.major).map((m) => ({ title: m.title, date: formatDate(m.target) })),
+}
+
+const RECENT_CHANGES = milestones
+  .filter((m) => m.status === "done" && m.description)
+  .slice(-5)
+  .reverse()
 
 function RoadmapPhase({ label, fig, items, variant }: {
   label: string
@@ -89,6 +85,34 @@ export default function Page() {
             <RoadmapPhase label="Completed" fig="PHASE 01" items={ROADMAP.done} variant="done" />
             <RoadmapPhase label="In Progress" fig="PHASE 02" items={ROADMAP.current} variant="current" />
             <RoadmapPhase label="Planned" fig="PHASE 03" items={ROADMAP.future} variant="future" />
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16">
+        <div className="mx-auto max-w-7xl px-4 2xl:max-w-[85%]">
+          <div className="mb-6 flex items-baseline justify-between">
+            <h2 className="text-sm font-medium uppercase tracking-widest text-muted-foreground/50" style={{ fontFamily: "var(--font-display), sans-serif" }}>Recent Changes</h2>
+            <Link href="/changelog" className="text-xs text-muted-foreground/50 transition-colors hover:text-foreground">
+              View all
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {RECENT_CHANGES.map((m, i) => (
+              <div key={i} className="flex flex-col gap-1.5 border border-border/50 p-5">
+                <div className="flex items-baseline justify-between gap-2">
+                  <h3 className="text-sm font-semibold" style={{ fontFamily: "var(--font-display), sans-serif" }}>
+                    {m.title}
+                  </h3>
+                  {m.date && (
+                    <span className="shrink-0 font-mono text-[11px] text-muted-foreground/40">
+                      {formatDate(m.date)}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm leading-relaxed text-muted-foreground">{m.description}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
