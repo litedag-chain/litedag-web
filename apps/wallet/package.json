@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "tsx test/address.test.ts"
   },
   "dependencies": {
     "@litedag/shared": "workspace:*",
@@ -33,6 +34,7 @@
     "@types/react": "^19.2.10",
     "@types/react-dom": "^19.2.3",
     "eslint": "^9.39.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
 }

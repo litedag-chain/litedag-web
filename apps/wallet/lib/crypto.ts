@@ -3,6 +3,7 @@ import { ed25519 } from "@noble/curves/ed25519.js"
 import { blake3 } from "@noble/hashes/blake3"
 import { hmac } from "@noble/hashes/hmac"
 import { sha512 } from "@noble/hashes/sha512"
+import { crc32 } from "@/lib/address"
 
 const HD_COIN_TYPE = 6310
 const WALLET_PREFIX = "v"
@@ -42,18 +43,6 @@ function slip10DerivePath(seed: Uint8Array, path: string) {
     node = slip10Derive(node, index)
   }
   return node
-}
-
-// CRC32 checksum
-function crc32(data: Uint8Array): number {
-  let crc = 0xffffffff
-  for (let i = 0; i < data.length; i++) {
-    crc ^= data[i]!
-    for (let j = 0; j < 8; j++) {
-      crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1))
-    }
-  }
-  return (crc ^ 0xffffffff) >>> 0
 }
 
 function bytesToBigInt(bytes: Uint8Array): bigint {
