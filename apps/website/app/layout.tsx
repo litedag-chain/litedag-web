@@ -5,6 +5,7 @@ import { fontVariables } from "@litedag/ui/fonts"
 import { Providers } from "@/components/providers"
 import { SiteNav } from "@litedag/ui/components/site-nav"
 import { SiteFooter } from "@litedag/ui/components/site-footer"
+import { WebsiteBanners } from "@/components/website-banners"
 
 export const metadata: Metadata = {
   title: {
@@ -28,6 +29,7 @@ export default function RootLayout({
         <Providers>
           <div className="flex min-h-svh flex-col">
             <SiteNav currentSite="website" />
+            <WebsiteBanners />
             <main className="flex-1">{children}</main>
             <SiteFooter />
           </div>
