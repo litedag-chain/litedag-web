@@ -48,8 +48,10 @@ export default function ChangelogPage() {
                 {m.description}
               </p>
             )}
-            {(m.credit || m.pr) && (
+            {(m.credit || m.pr || m.link) && (
               <p className="mt-1 text-xs text-muted-foreground/50">
+                {m.link && <><a href={m.link} className="underline hover:text-muted-foreground">Read more</a></>}
+                {m.link && (m.credit || m.pr) && " · "}
                 {m.credit && (
                   <>
                     Contributed by{" "}

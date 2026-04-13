@@ -8,6 +8,7 @@ export type Milestone = {
   apps?: ("wallet" | "explorer" | "website")[] // which apps this is relevant to
   credit?: { name: string; url?: string }  // community contributor
   pr?: string // PR URL
+  link?: string // link to relevant page for more detail
 }
 
 export const milestones: Milestone[] = [
@@ -122,6 +123,7 @@ export const milestones: Milestone[] = [
     status: "done",
     apps: ["wallet", "website"],
     description: "Send dialog auto-extracts Payment ID from integrated addresses. Exchange integration guide added to developer docs.",
+    link: "/docs/developer-docs/exchange-integration",
   },
   {
     title: "Payment ID precision fix",
