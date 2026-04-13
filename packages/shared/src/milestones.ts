@@ -95,31 +95,30 @@ export const milestones: Milestone[] = [
   },
   {
     title: "Mainnet launch",
-    date: "2026-04",
+    date: "2026-04-01",
     status: "done",
     major: true,
     description: "20 LDG/block, 1 LDG tail emission, 311.7M max supply. PoS active with delegate staking.",
   },
   {
     title: "Integrated address support",
-    date: "2026-04",
+    date: "2026-04-09",
     status: "done",
     apps: ["wallet"],
     description: "Fixed payment_id handling — CEX deposits are now properly identifiable. Verified against Go implementation with 40 cross-language test vectors.",
   },
   {
     title: "Manual Payment ID in send dialog",
-    date: "2026-04",
+    date: "2026-04-09",
     status: "done",
     apps: ["wallet"],
     description: "Optional Payment ID field in the send form. Manual value overrides the address-embedded payment_id.",
     credit: { name: "cexius", url: "https://github.com/cexius" },
     pr: "https://github.com/litedag-chain/litedag-web/pull/1",
   },
-
   {
     title: "Send UX and exchange integration docs",
-    date: "2026-04",
+    date: "2026-04-13",
     status: "done",
     apps: ["wallet", "website"],
     description: "Send dialog auto-extracts Payment ID from integrated addresses. Exchange integration guide added to developer docs.",
@@ -127,7 +126,7 @@ export const milestones: Milestone[] = [
   },
   {
     title: "Payment ID precision fix",
-    date: "2026-04",
+    date: "2026-04-13",
     status: "done",
     apps: ["wallet"],
     description: "Switched payment ID handling to bigint end-to-end, preventing silent precision loss for large payment IDs (above 2^53).",
@@ -135,7 +134,7 @@ export const milestones: Milestone[] = [
   },
   {
     title: "Mempool fee-priority sorting",
-    date: "2026-04",
+    date: "2026-04-13",
     status: "done",
     major: true,
     description: "Block assembly now selects highest fee-per-byte transactions first. Preserves nonce order per sender. Node v3.3.1.",

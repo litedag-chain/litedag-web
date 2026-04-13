@@ -8,10 +8,12 @@ export const metadata: Metadata = {
 
 function formatDate(date?: string): string {
   if (!date) return ""
-  const [y, m] = date.split("-")
-  if (!m) return y!
+  const parts = date.split("-")
+  if (parts.length === 1) return parts[0]!
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-  return `${months[parseInt(m, 10) - 1]} ${y}`
+  const month = months[parseInt(parts[1]!, 10) - 1]
+  if (parts.length === 3) return `${month} ${parseInt(parts[2]!, 10)}, ${parts[0]}`
+  return `${month} ${parts[0]}`
 }
 
 export default function ChangelogPage() {
