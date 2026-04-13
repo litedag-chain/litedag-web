@@ -23,7 +23,7 @@ function assert(condition: boolean, msg: string): asserts condition {
   if (!condition) throw new Error(msg)
 }
 
-export function parseAddress(addressStr: string): { addr: Uint8Array; paymentId: number } {
+export function parseAddress(addressStr: string): { addr: Uint8Array; paymentId: bigint } {
   const trimmed = addressStr.trim()
   assert(trimmed.length >= 5 && trimmed.length <= 100, `Invalid address length: ${trimmed.length}`)
   assert(trimmed.startsWith("v"), "Address must start with 'v'")
@@ -57,14 +57,14 @@ export function parseAddress(addressStr: string): { addr: Uint8Array; paymentId:
   const addr = new Uint8Array(payload.slice(0, ADDRESS_SIZE))
 
   // Decode paymentId from trailing compact little-endian bytes
-  let paymentId = 0
+  let paymentId = 0n
   if (payload.length > ADDRESS_SIZE) {
     const pidBytes = payload.slice(ADDRESS_SIZE)
     assert(pidBytes.length <= 8, `Payment ID too long: ${pidBytes.length} bytes`)
     const padded = new Uint8Array(8)
     padded.set(pidBytes)
     const view = new DataView(padded.buffer)
-    paymentId = Number(view.getBigUint64(0, true))
+    paymentId = view.getBigUint64(0, true)
   }
 
   return { addr, paymentId }

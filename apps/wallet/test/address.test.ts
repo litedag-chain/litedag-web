@@ -3,7 +3,7 @@
 // Run: pnpm test (in apps/wallet)
 
 import { readFileSync } from "fs"
-import { parseAddress } from "../lib/address"
+import { ADDRESS_SIZE, crc32, parseAddress } from "../lib/address"
 
 const vectors: { str: string; addr_hex: string; pid: number }[] = JSON.parse(
   readFileSync(new URL("../../../address-test-vectors.json", import.meta.url), "utf-8")
@@ -15,9 +15,38 @@ function toHex(bytes: Uint8Array): string {
     .join("")
 }
 
+// Build an integrated address string from raw bytes (for regression tests)
+function buildIntegratedAddress(addr: Uint8Array, pid: bigint): string {
+  const pidBytes: number[] = []
+  let n = pid
+  while (n > 0n) {
+    pidBytes.push(Number(n & 0xffn))
+    n >>= 8n
+  }
+  const payload = new Uint8Array(ADDRESS_SIZE + pidBytes.length)
+  payload.set(addr, 0)
+  payload.set(pidBytes, ADDRESS_SIZE)
+  const sum = crc32(payload) & 0xffff
+  const full = new Uint8Array(2 + payload.length)
+  full[0] = sum & 0xff
+  full[1] = (sum >> 8) & 0xff
+  full.set(payload, 2)
+  let bigInt = 0n
+  for (const b of full) bigInt = (bigInt << 8n) + BigInt(b)
+  let base36 = ""
+  let v = bigInt
+  while (v > 0n) {
+    const rem = Number(v % 36n)
+    base36 = (rem < 10 ? String(rem) : String.fromCharCode(87 + rem)) + base36
+    v /= 36n
+  }
+  return `v${base36}`
+}
+
 let passed = 0
 let failed = 0
 
+// --- Go test vectors ---
 for (const v of vectors) {
   try {
     const result = parseAddress(v.str)
@@ -25,13 +54,12 @@ for (const v of vectors) {
 
     if (gotHex !== v.addr_hex) {
       console.error(`FAIL [${v.str}]: addr_hex\n  want: ${v.addr_hex}\n  got:  ${gotHex}`)
-      failed++
-      continue
+      failed++; continue
     }
-    if (result.paymentId !== v.pid) {
-      console.error(`FAIL [${v.str}]: paymentId\n  want: ${v.pid}\n  got:  ${result.paymentId}`)
-      failed++
-      continue
+    const expectedPid = BigInt(v.pid)
+    if (result.paymentId !== expectedPid) {
+      console.error(`FAIL [${v.str}]: paymentId\n  want: ${expectedPid}\n  got:  ${result.paymentId}`)
+      failed++; continue
     }
     passed++
   } catch (e: unknown) {
@@ -40,8 +68,32 @@ for (const v of vectors) {
   }
 }
 
-console.log(`\n${passed}/${vectors.length} vectors passed`)
+// --- Bigint precision regression tests ---
+const regressionAddr = new Uint8Array(ADDRESS_SIZE).fill(7)
+const regressionCases = [9007199254740993n, 18446744073709551615n] // 2^53+1, 2^64-1
+
+for (const pid of regressionCases) {
+  try {
+    const encoded = buildIntegratedAddress(regressionAddr, pid)
+    const parsed = parseAddress(encoded)
+    if (toHex(parsed.addr) !== toHex(regressionAddr)) {
+      console.error(`FAIL [regression ${pid}]: addr mismatch`)
+      failed++; continue
+    }
+    if (parsed.paymentId !== pid) {
+      console.error(`FAIL [regression ${pid}]: paymentId\n  want: ${pid}\n  got:  ${parsed.paymentId}`)
+      failed++; continue
+    }
+    passed++
+  } catch (e: unknown) {
+    console.error(`FAIL [regression ${pid}]: ${e instanceof Error ? e.message : e}`)
+    failed++
+  }
+}
+
+const total = vectors.length + regressionCases.length
+console.log(`\n${passed}/${total} vectors passed`)
 if (failed > 0) {
   process.exit(1)
 }
-console.log("All vectors match Go address.FromString.")
+console.log("All vectors match Go address.FromString and bigint regression checks.")

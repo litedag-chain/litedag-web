@@ -49,16 +49,17 @@ export function SendDialog({ wallet, open, onOpenChange, onSent }: {
       if (!v.valid) { setError(v.error_message || "Invalid address"); return }
       const atomicAmount = BigInt(Math.round(parseFloat(amount) * 1e9))
       assert(atomicAmount > 0n, "Amount must be positive")
-      const manualPid = paymentId.trim() !== "" ? Number(paymentId) : undefined
-      if (manualPid !== undefined) {
-        assert(Number.isInteger(manualPid) && manualPid >= 0, "Payment ID must be a non-negative integer")
+      let manualPid: bigint | undefined
+      if (paymentId.trim() !== "") {
+        assert(/^\d+$/.test(paymentId.trim()), "Payment ID must be a non-negative integer")
+        manualPid = BigInt(paymentId.trim())
       }
       const fee = estimateTransferFee([{ recipient, amount: atomicAmount, paymentId: manualPid }])
       const rows = [
         { label: "To", value: recipient },
         { label: "Amount", value: `${parseFloat(amount).toLocaleString()} LDG` },
       ]
-      if (manualPid !== undefined && manualPid !== 0) {
+      if (manualPid !== undefined && manualPid !== 0n) {
         rows.push({ label: "Payment ID", value: String(manualPid) })
       }
       setPending({
@@ -89,7 +90,7 @@ export function SendDialog({ wallet, open, onOpenChange, onSent }: {
           <div className="flex flex-col gap-3">
             <Input placeholder="Recipient address" value={recipient} onChange={(e) => setRecipient(e.target.value)} />
             <Input type="number" min={0} placeholder="Amount (LDG)" value={amount} onChange={(e) => setAmount(e.target.value)} />
-            <Input type="number" min={0} step={1} placeholder="Payment ID (optional)" value={paymentId} onChange={(e) => setPaymentId(e.target.value)} />
+            <Input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="Payment ID (optional)" value={paymentId} onChange={(e) => setPaymentId(e.target.value)} />
             {error && <p className="text-sm text-destructive">{error}</p>}
             {result && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">

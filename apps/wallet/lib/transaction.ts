@@ -4,7 +4,7 @@ import { NETWORK_ID, LEGACY_MAINNET_NETWORK_ID, FEE_PER_BYTE_V2 } from "@litedag
 import { rpc } from "@/lib/rpc-client"
 import type { Wallet } from "@/lib/crypto"
 import type { GetAddressResponse } from "@litedag/shared/rpc-types"
-import { parseAddress, ADDRESS_SIZE } from "@/lib/address"
+import { parseAddress } from "@/lib/address"
 
 const TX_VERSION_TRANSFER = 1
 const TX_VERSION_SET_DELEGATE = 3
@@ -58,14 +58,13 @@ function bytesToHex(bytes: Uint8Array): string {
 
 // --- Serialization ---
 
-function serializeOutput(recipient: string, paymentId: number, amount: bigint): Uint8Array {
+function serializeOutput(recipient: string, paymentId: bigint | undefined, amount: bigint): Uint8Array {
   const parsed = parseAddress(recipient)
-  // Integrated address carries its own payment_id — use it unless caller overrides
-  const pid = parsed.paymentId !== 0 ? parsed.paymentId : paymentId
+  const pid = paymentId ?? parsed.paymentId
   return concatBytes(new Uint8Array(parsed.addr), encodeVarint(pid), encodeVarint(amount))
 }
 
-function serializeTransferData(outputs: { recipient: string; paymentId: number; amount: bigint }[]): Uint8Array {
+function serializeTransferData(outputs: { recipient: string; paymentId?: bigint; amount: bigint }[]): Uint8Array {
   const parts = [encodeVarint(outputs.length)]
   for (const o of outputs) {
     parts.push(serializeOutput(o.recipient, o.paymentId, o.amount))
@@ -173,7 +172,7 @@ async function signAndSerialize(wallet: Wallet, tx: Tx): Promise<{ hex: string; 
 export type TransferOutput = {
   recipient: string
   amount: bigint
-  paymentId?: number
+  paymentId?: bigint
 }
 
 export async function createAndSignTransfer(
@@ -181,9 +180,7 @@ export async function createAndSignTransfer(
   outputs: TransferOutput[]
 ): Promise<{ hex: string; hash: string }> {
   const nonce = await getNonce(wallet.address)
-  const data = serializeTransferData(
-    outputs.map((o) => ({ recipient: o.recipient, paymentId: o.paymentId ?? 0, amount: o.amount }))
-  )
+  const data = serializeTransferData(outputs)
   const tx: Tx = {
     version: TX_VERSION_TRANSFER,
     signer: Array.from(wallet.publicKey),
@@ -261,9 +258,7 @@ export async function submitTransaction(hex: string): Promise<{ result: boolean 
 // --- Fee estimation (for confirmation dialogs) ---
 
 export function estimateTransferFee(outputs: TransferOutput[]): bigint {
-  const data = serializeTransferData(
-    outputs.map((o) => ({ recipient: o.recipient, paymentId: o.paymentId ?? 0, amount: o.amount }))
-  )
+  const data = serializeTransferData(outputs)
   const tx: Tx = {
     version: TX_VERSION_TRANSFER,
     signer: Array.from(new Uint8Array(32)),
