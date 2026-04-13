@@ -116,6 +116,28 @@ export const milestones: Milestone[] = [
     pr: "https://github.com/litedag-chain/litedag-web/pull/1",
   },
 
+  {
+    title: "Payment ID precision fix",
+    date: "2026-04",
+    status: "done",
+    apps: ["wallet"],
+    description: "Switched payment ID handling to bigint end-to-end, preventing silent precision loss for large payment IDs (above 2^53).",
+    credit: { name: "cexius", url: "https://github.com/cexius" },
+  },
+  {
+    title: "Mempool fee-priority sorting",
+    date: "2026-04",
+    status: "done",
+    major: true,
+    description: "Block assembly now selects highest fee-per-byte transactions first. Preserves nonce order per sender. Node v3.3.1.",
+    credit: { name: "nuliro" },
+  },
+  {
+    title: "Public testnet",
+    status: "current",
+    major: true,
+  },
+
   // --- Current ---
   {
     title: "Exchange listings",
@@ -128,16 +150,10 @@ export const milestones: Milestone[] = [
     major: true,
   },
   {
-    title: "Fee reduction proposal",
+    title: "Fee reduction",
     status: "current",
-    description: "Remove protocol-level minimum fee, enforce at node mempool policy level. Community discussion in progress.",
-  },
-
-  // --- Future ---
-  {
-    title: "Mempool fee-priority sorting",
-    status: "future",
-    description: "Miners select highest-fee transactions first. Requires node update.",
+    major: true,
+    description: "Remove protocol-level minimum fee, enforce at node mempool policy level. Requires hard fork.",
   },
   {
     title: "Bounties website",
