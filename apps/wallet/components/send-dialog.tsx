@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@litedag/ui/components/button"
 import { Input } from "@litedag/ui/components/input"
 import {
@@ -17,11 +17,21 @@ import {
   submitTransaction,
   estimateTransferFee,
 } from "@/lib/transaction"
+import { parseAddress } from "@/lib/address"
 import { ConfirmTxDialog, type PendingTx } from "@/components/confirm-tx-dialog"
 import type { Wallet } from "@/lib/crypto"
 
 function assert(condition: boolean, msg: string): asserts condition {
   if (!condition) throw new Error(msg)
+}
+
+function tryExtractPaymentId(addr: string): bigint | null {
+  try {
+    const parsed = parseAddress(addr)
+    return parsed.paymentId !== 0n ? parsed.paymentId : null
+  } catch {
+    return null
+  }
 }
 
 export function SendDialog({ wallet, open, onOpenChange, onSent }: {
@@ -33,13 +43,31 @@ export function SendDialog({ wallet, open, onOpenChange, onSent }: {
   const [recipient, setRecipient] = useState("")
   const [amount, setAmount] = useState("")
   const [paymentId, setPaymentId] = useState("")
+  const [embeddedPid, setEmbeddedPid] = useState<bigint | null>(null)
   const [result, setResult] = useState("")
   const [error, setError] = useState("")
   const [pending, setPending] = useState<PendingTx | null>(null)
   const [validating, setValidating] = useState(false)
 
+  // Extract payment_id from address whenever recipient changes
+  useEffect(() => {
+    const pid = tryExtractPaymentId(recipient)
+    setEmbeddedPid(pid)
+    if (pid !== null) {
+      setPaymentId(pid.toString())
+    } else {
+      // Only clear if it was auto-filled (don't wipe manual input)
+      setPaymentId((prev) => {
+        if (embeddedPid !== null && prev === embeddedPid.toString()) return ""
+        return prev
+      })
+    }
+  }, [recipient])
+
+  const pidLocked = embeddedPid !== null
+
   const reset = () => {
-    setRecipient(""); setAmount(""); setPaymentId(""); setResult(""); setError("")
+    setRecipient(""); setAmount(""); setPaymentId(""); setEmbeddedPid(null); setResult(""); setError("")
   }
 
   const handlePrepare = async () => {
@@ -55,16 +83,11 @@ export function SendDialog({ wallet, open, onOpenChange, onSent }: {
         manualPid = BigInt(paymentId.trim())
       }
       const fee = estimateTransferFee([{ recipient, amount: atomicAmount, paymentId: manualPid }])
-      const rows = [
-        { label: "To", value: recipient },
-        { label: "Amount", value: `${parseFloat(amount).toLocaleString()} LDG` },
-      ]
-      if (manualPid !== undefined && manualPid !== 0n) {
-        rows.push({ label: "Payment ID", value: String(manualPid) })
-      }
       setPending({
         title: "Send LDG",
-        rows,
+        recipient,
+        amount: parseFloat(amount),
+        paymentId: manualPid,
         fee,
         execute: async () => {
           const { hex, hash } = await createAndSignTransfer(wallet, [{ recipient, amount: atomicAmount, paymentId: manualPid }])
@@ -90,7 +113,23 @@ export function SendDialog({ wallet, open, onOpenChange, onSent }: {
           <div className="flex flex-col gap-3">
             <Input placeholder="Recipient address" value={recipient} onChange={(e) => setRecipient(e.target.value)} />
             <Input type="number" min={0} placeholder="Amount (LDG)" value={amount} onChange={(e) => setAmount(e.target.value)} />
-            <Input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="Payment ID (optional)" value={paymentId} onChange={(e) => setPaymentId(e.target.value)} />
+            <div>
+              <Input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="Payment ID (optional)"
+                value={paymentId}
+                onChange={(e) => { if (!pidLocked) setPaymentId(e.target.value) }}
+                disabled={pidLocked}
+                className={pidLocked ? "cursor-not-allowed" : ""}
+              />
+              {pidLocked && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Extracted from address. Exchanges embed a Payment ID in the deposit address to identify your account. This is filled automatically and cannot be changed.
+                </p>
+              )}
+            </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             {result && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">

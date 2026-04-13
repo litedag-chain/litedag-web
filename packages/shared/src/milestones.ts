@@ -117,6 +117,13 @@ export const milestones: Milestone[] = [
   },
 
   {
+    title: "Send UX and exchange integration docs",
+    date: "2026-04",
+    status: "done",
+    apps: ["wallet", "website"],
+    description: "Send dialog auto-extracts Payment ID from integrated addresses. Exchange integration guide added to developer docs.",
+  },
+  {
     title: "Payment ID precision fix",
     date: "2026-04",
     status: "done",

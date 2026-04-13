@@ -69,3 +69,4 @@ export function parseAddress(addressStr: string): { addr: Uint8Array; paymentId:
 
   return { addr, paymentId }
 }
+
